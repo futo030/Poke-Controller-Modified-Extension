@@ -8,7 +8,7 @@ import tkinter.ttk as ttk
 import tkinter.messagebox as tkmsg
 import tkinter.scrolledtext as st
 import platform
-import Window
+import Constant
 import pkg_resources
 
 # ソースコードの見た目がよくないので、こっちで定義する。
@@ -107,7 +107,7 @@ class PokeConQuestionDialogue(object):
             txt = '---------------------------ここからコピペ---------------------------\n'
             txt += f'■プログラム名\n"{self._ls[0]}\n'
             txt += f'■製作者様\n{self._ls[1]}\n'
-            txt += f'■使用ツール\n{Window.NAME} {Window.VERSION}\n'
+            txt += f'■使用ツール\n{Constant.NAME} {Constant.VERSION}\n'
 
             if platform.system() == 'Darwin':
                 # MacOS

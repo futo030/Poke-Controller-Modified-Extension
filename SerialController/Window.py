@@ -11,7 +11,6 @@ import cv2
 import platform
 import subprocess
 import threading
-import Window
 import tkinter.ttk as ttk
 import tkinter.messagebox as tkmsg
 from serial.tools import list_ports
@@ -36,13 +35,10 @@ from Commands import McuCommandBase, PythonCommandBase, Sender
 from Commands.Keys import KeyPress, Button, Hat, Stick, Direction
 from Commands.ProController import ProController
 from Commands.CommandBase import Command
+import Constant
 
 addpath = dirname(dirname(dirname(abspath(__file__))))  # SerialControllerフォルダのパス
 sys.path.append(addpath)
-
-NAME = "Poke-Controller Modified Extension"
-VERSION = "ver.0.0.6"
-
 
 class PokeControllerApp:
     def __init__(self, master=None, profile='default'):
@@ -56,7 +52,7 @@ class PokeControllerApp:
         self._logger.debug(f'User Profile Name: \'{profile}\'')
 
         self.root = master
-        self.root.title(NAME + ' ' + VERSION + f" (profile: {args.profile})")
+        self.root.title(Constant.NAME + ' ' + Constant.VERSION + f" (profile: {args.profile})")
         # self.root.resizable(0, 0)
         self.controller = None
         self.poke_treeview = None
@@ -68,11 +64,11 @@ class PokeControllerApp:
 
         self.procon = None
 
-        self.pokeconname = NAME
-        self.pokeconversion = VERSION[4:]
+        self.pokeconname = Constant.NAME
+        self.pokeconversion = Constant.VERSION[4:]
 
         self.profile = profile
-        Command.app_name = f'{NAME} {VERSION}'
+        Command.app_name = f'{Constant.NAME} {Constant.VERSION}'
         Command.profilename = profile
 
         '''
@@ -1064,7 +1060,7 @@ class PokeControllerApp:
     def sendWinNotfication(self):
         global flag_import_plyer
         if flag_import_plyer:
-            notification.notify(title=f'{NAME} {VERSION} (profile:{self.profile})', message="Notification Test", timeout=5)
+            notification.notify(title=f'{Constant.NAME} {Constant.VERSION} (profile:{self.profile})', message="Notification Test", timeout=5)
         else:
             print('"plyer" is not installed.')
 
