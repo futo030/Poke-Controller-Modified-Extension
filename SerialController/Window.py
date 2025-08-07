@@ -1095,7 +1095,7 @@ class PokeControllerApp:
         self.softcon_zr_button.bind("<Button-1>", lambda event, arg=Button.ZR: self.hold(event, arg))
         self.softcon_r_button.bind("<Button-1>", lambda event, arg=Button.R: self.hold(event, arg))
         self.softcon_plus_button.bind("<Button-1>", lambda event, arg=Button.PLUS: self.hold(event, arg))
-        self.softcon_r_click_button.bind("<Button-1>", lambda event, arg=Button.R: self.hold(event, arg))
+        self.softcon_r_click_button.bind("<Button-1>", lambda event, arg=Button.RCLICK: self.hold(event, arg))
         self.softcon_x_button.bind("<Button-1>", lambda event, arg=Button.X: self.hold(event, arg))
         self.softcon_y_button.bind("<Button-1>", lambda event, arg=Button.Y: self.hold(event, arg))
         self.softcon_a_button.bind("<Button-1>", lambda event, arg=Button.A: self.hold(event, arg))
@@ -1154,7 +1154,7 @@ class PokeControllerApp:
             "<Shift-ButtonRelease-1>", lambda event, arg=Button.PLUS: self.holdEndSkip(event, arg)
         )
         self.softcon_r_click_button.bind(
-            "<Shift-ButtonRelease-1>", lambda event, arg=Button.R: self.holdEndSkip(event, arg)
+            "<Shift-ButtonRelease-1>", lambda event, arg=Button.RCLICK: self.holdEndSkip(event, arg)
         )
         self.softcon_x_button.bind("<Shift-ButtonRelease-1>", lambda event, arg=Button.X: self.holdEndSkip(event, arg))
         self.softcon_y_button.bind("<Shift-ButtonRelease-1>", lambda event, arg=Button.Y: self.holdEndSkip(event, arg))
