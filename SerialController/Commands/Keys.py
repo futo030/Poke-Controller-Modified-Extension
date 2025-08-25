@@ -360,6 +360,9 @@ class Direction:
         else:
             return False
 
+    def __hash__(self) -> int:
+        return hash((self.x, self.y, self.stick))
+
     def getTilting(self):
         tilting = []
         if self.stick == Stick.LEFT:
@@ -421,6 +424,17 @@ class Touchscreen:
         self.x = x
         self.y = y
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Touchscreen):
+            return False
+
+        return bool(
+            self.x == other.x and self.y == other.y,
+        )
+
+    def __hash__(self) -> int:
+        return hash((self.x, self.y))
+
 
 # handles serial input to Joystick.c
 
@@ -437,7 +451,11 @@ class KeyPress:
         self.q = queue.Queue()
         self.ser = ser
         self.format = SendFormat()
-        self.holdButton = []
+        self.holdButton = set()
+        self.holdHat = Hat.CENTER
+        self.holdLeftStick = False
+        self.holdRightStick = False
+        self.holdTouchscreen = False
         self.btn_name2 = ["LEFT", "RIGHT", "UP", "DOWN", "UP_LEFT", "UP_RIGHT", "DOWN_LEFT", "DOWN_RIGHT"]
 
         self.pushing_to_show = None
@@ -452,6 +470,19 @@ class KeyPress:
         self.inputEnd_time_0 = time.perf_counter()
         self.was_neutral = True
 
+    @property
+    def holdButtons(self) -> ButtonsList:
+        holdButtons: ButtonsList = list(self.holdButton)
+        if self.holdHat != Hat.CENTER:
+            holdButtons.append(self.holdHat)
+        if self.holdLeftStick:
+            holdButtons.append(self.holdLeftStick)
+        if self.holdRightStick:
+            holdButtons.append(self.holdRightStick)
+        if self.holdTouchscreen:
+            holdButtons.append(self.holdTouchscreen)
+        return holdButtons
+
     def init_hat(self):
         pass
 
@@ -460,7 +491,7 @@ class KeyPress:
         if not isinstance(btns, list):
             btns = [btns]
 
-        for btn in self.holdButton:
+        for btn in self.holdButtons:
             if btn not in btns:
                 btns.append(btn)
         if self.serial_data_format_name == "3DS Controller":
@@ -500,6 +531,13 @@ class KeyPress:
                 tilts.append(tilting)
         # self._logger.debug(tilts)
 
+        if self.holdHat != Hat.CENTER and not any(isinstance(btn, Hat) for btn in btns):
+            unset_hat = False
+        if self.holdTouchscreen and not any(
+            isinstance(btn, Touchscreen) for btn in btns
+        ):
+            unset_Touchscreen = False
+
         if self.serial_data_format_name == "3DS Controller":
             self.format.unsetButton(
                 [btn for btn in btns if type(btn) is Button], convert=conversion_3ds_controller_button
@@ -524,43 +562,88 @@ class KeyPress:
         if not isinstance(btns, list):
             btns = [btns]
 
-        flag_isTouchscreen = False
-        for btn in btns:
-            if type(btn) is Touchscreen:
-                flag_isTouchscreen = True
-        if flag_isTouchscreen:
-            for btn in self.holdButton:
-                if type(btn) is Touchscreen:
-                    self.holdButton.remove(btn)
-        for btn in btns:
-            if btn in self.holdButton:
-                print("Warning: " + btn.name + " is already in holding state")
-                self._logger.warning(f"Warning: {btn.name} is already in holding state")
-                return
-
-            self.holdButton.append(btn)
-        self.input(btns)
+        for btn in btns[:]:
+            if isinstance(btn, Button):
+                if btn in self.holdButton:
+                    print(f"Warning: {btn.name} is already in holding state")
+                    btns.remove(btn)
+                else:
+                    self.holdButton.add(btn)
+            elif isinstance(btn, Hat):
+                if btn == self.holdHat:
+                    print(f"Warning: {btn.name} is already in holding state")
+                    btns.remove(btn)
+                else:
+                    self.holdHat = btn
+            elif isinstance(btn, Direction):
+                if btn.stick == Stick.LEFT:
+                    if btn == self.holdLeftStick:
+                        print(f"Warning: {btn.name} is already in holding state")
+                        btns.remove(btn)
+                    else:
+                        self.holdLeftStick = btn
+                elif btn.stick == Stick.RIGHT:
+                    if btn == self.holdRightStick:
+                        print(f"Warning: {btn.name} is already in holding state")
+                        btns.remove(btn)
+                    else:
+                        self.holdRightStick = btn
+            elif isinstance(btn, Touchscreen):
+                if btn == self.holdTouchscreen:
+                    print(f"Warning: {btn.name} is already in holding state")
+                    btns.remove(btn)
+                else:
+                    self.holdTouchscreen = btn
+        if len(btns) > 0:
+            self.input(btns)
 
     def holdEnd(self, btns: Button | Hat | Stick | Direction):
         if not isinstance(btns, list):
             btns = [btns]
 
-        flag_isTouchscreen = False
-        for btn in btns:
-            if type(btn) is not Touchscreen:
-                self.holdButton.remove(btn)
-            else:
-                flag_isTouchscreen = True
-        if flag_isTouchscreen:
-            for btn in self.holdButton:
-                if type(btn) is Touchscreen:
+        for btn in btns[:]:
+            if isinstance(btn, Button):
+                if btn in self.holdButton:
                     self.holdButton.remove(btn)
+                else:
+                    print(f"Warning: {btn.name} is not holding state")
+                    btns.remove(btn)
+            elif isinstance(btn, Hat):
+                if btn == self.holdHat:
+                    self.holdHat = Hat.CENTER
+                else:
+                    print(f"Warning: {btn.name} is not holding state")
+                    btns.remove(btn)
+            elif isinstance(btn, Direction):
+                if btn.stick == Stick.LEFT:
+                    if btn == self.holdLeftStick:
+                        self.holdLeftStick = False
+                    else:
+                        print(f"Warning: {btn.name} is not holding state")
+                        btns.remove(btn)
+                elif btn.stick == Stick.RIGHT:
+                    if btn == self.holdRightStick:
+                        self.holdRightStick = False
+                    else:
+                        print(f"Warning: {btn.name} is not holding state")
+                        btns.remove(btn)
+            elif isinstance(btn, Touchscreen):
+                if btn == self.holdTouchscreen:
+                    self.holdTouchscreen = False
+                else:
+                    print(f"Warning: {btn.name} is not holding state")
+                    btns.remove(btn)
 
-        self.inputEnd(btns)
+        if len(btns) > 0:
+            self.inputEnd(btns)
 
     def neutral(self):
-        btns = self.holdButton
-        self.holdButton = []
+        btns = self.holdButtons
+        self.holdButton = set()
+        self.holdHat = Hat.CENTER
+        self.holdLeftStick = False
+        self.holdRightStick = False
+        self.holdTouchscreen = False
         self.inputEnd(btns, unset_hat=True, unset_Touchscreen=True)
 
     def end(self):
