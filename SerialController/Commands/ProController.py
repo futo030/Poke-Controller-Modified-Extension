@@ -230,6 +230,7 @@ class ProController:
         pygame.init()
         joystick = pygame.joystick.Joystick(0)
         joystick.init()
+        clock = pygame.time.Clock()
 
         if flag_record:
             start_time = datetime.datetime.today().strftime("%Y%m%d%H%M%S")
@@ -242,6 +243,8 @@ class ProController:
         self.old_message = ""
         try:
             while self.flag_procon:
+                # 60fpsでjoystickの状態を取得
+                clock.tick(60)
                 # イベント取得
                 events = pygame.event.get()
                 # print("1")
