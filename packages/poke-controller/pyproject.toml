@@ -1,0 +1,35 @@
+[project]
+name = "poke-controller"
+version = "0.0.0"
+description = "Poke-Controller"
+authors = [
+    { name = "KawaSwitch" },
+    { name = "Moi-poke" },
+    { name = "futo030" },
+    { name = "carimatics" },
+]
+requires-python = "==3.12.*"
+dependencies = [
+    "gitpython>=3.1.45",
+    "numpy>=2.3.5",
+    "opencv-python>=4.11.0.86",
+    "paho-mqtt>=2.1.0",
+    "pandas>=2.3.3",
+    "pillow>=12.0.0",
+    "plyer>=2.1.0",
+    "pygame>=2.6.1",
+    "pygubu>=0.39",
+    "pynput>=1.8.1",
+    "pyserial>=3.5",
+    "pythonnet>=3.0.5",
+    "requests>=2.32.5",
+    "scipy>=1.16.3",
+    "windows-capture-device-list>=1.1.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.9.9,<0.10.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "pokecontroller"

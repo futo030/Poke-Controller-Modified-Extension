@@ -1,0 +1,45 @@
+[project]
+name = "root"
+version = "0.1.0"
+description = "Poke-Controller-Modified-Extension"
+readme = "README.md"
+authors = [
+    { name = "KawaSwitch" },
+    { name = "Moi-poke" },
+    { name = "futo030" },
+    { name = "carimatics" },
+]
+requires-python = "==3.12.*"
+dependencies = [
+    "gitpython>=3.1.45",
+    "numpy>=2.3.5",
+    "opencv-python>=4.11.0.86",
+    "paho-mqtt>=2.1.0",
+    "pandas>=2.3.3",
+    "pillow>=12.0.0",
+    "plyer>=2.1.0",
+    "poke-controller",
+    "poke-controller-modified-extension",
+    "pygame>=2.6.1",
+    "pygubu>=0.39",
+    "pynput>=1.8.1",
+    "pyserial>=3.5",
+    "pythonnet>=3.0.5",
+    "requests>=2.32.5",
+    "scipy>=1.16.3",
+    "windows-capture-device-list>=1.1.0",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.19.0",
+    "ruff>=0.14.7",
+    "types-requests>=2.32.4.20250913",
+]
+
+[tool.uv.sources]
+poke-controller = { workspace = true }
+poke-controller-modified-extension = { workspace = true }
+
+[tool.uv.workspace]
+members = ["packages/*", "apps/*"]
