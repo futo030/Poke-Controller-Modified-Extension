@@ -1,0 +1,426 @@
+{
+  "app": {
+    "message": {
+      "close_confirm": "Poke-Controllerを終了しますか？"
+    }
+  },
+  "main": {
+    "capture": {
+      "start": {
+        "text": "Start",
+        "tooltip": "自動化スクリプトを実行します"
+      },
+      "stop": {
+        "text": "Stop",
+        "tooltip": "自動化スクリプトの実行を停止します"
+      },
+      "controller": {
+        "text": "Controller",
+        "tooltip": "Switch用ソフトウェアコントローラーを起動します"
+      },
+      "clear_outputs": {
+        "text": "Clear Outputs",
+        "tooltip": "ログ画面(Output#1/Output#2)をクリアします"
+      },
+      "open_capture_dir": {
+        "tooltip": "スクリーンショット画像を保存するディレクトリを開きます"
+      },
+      "capture": {
+        "text": "Capture",
+        "tooltip": "ゲーム画面のスクリーンショットを取得します"
+      },
+      "discord": {
+        "text": "Discord",
+        "tooltip": "現在のゲーム画面をDiscordに通知します"
+      }
+    },
+    "settings": {
+      "capture": {
+        "camera": {
+          "name": {
+            "label": {
+              "text": "Camera Name:",
+              "tooltip": "使用するキャプチャデバイスを設定します"
+            },
+            "combobox": {
+              "tooltip": "設定するキャプチャデバイス"
+            }
+          },
+          "id": {
+            "label": {
+              "text": "Camera ID:",
+              "tooltip": "使用するキャプチャデバイスのIDを設定します"
+            },
+            "entry": {
+              "tooltip": "使用するキャプチャデバイスのID"
+            }
+          },
+          "fps": {
+            "label": {
+              "text": "FPS:",
+              "tooltip": "FPSを設定します(即時反映)"
+            },
+            "combobox": {
+              "tooltip": "設定されているFPS"
+            }
+          },
+          "size": {
+            "label": {
+              "text": "Show Size:",
+              "tooltip": "表示する画像のサイズを設定します(即時反映)\n(注意)リアルタイム更新中は反映不可"
+            },
+            "combobox": {
+              "tooltip": "表示されている画像サイズ"
+            }
+          },
+          "reload": {
+            "text": "Reload",
+            "tooltip": "設定したキャプチャデバイスとの接続を確立し、画像読み込みを開始します"
+          }
+        },
+        "display": {
+          "realtime": {
+            "text": "Show Realtime",
+            "tooltip": "画像をリアルタイムで更新する機能を有効化します\n(注意)本機能を有効化しないと画像は静止画のままとなります"
+          },
+          "matched": {
+            "text": "Show Matched",
+            "tooltip": "テンプレートマッチングの類似度をshow_valueの値によらず強制的に出力します"
+          },
+          "guide": {
+            "text": "Show Guide",
+            "tooltip": "ガイド表示を有効化します\n自動化スクリプト次第で本チェックボックスは無効化される場合があります"
+          }
+        }
+      },
+      "serial": {
+        "port": {
+          "port": {
+            "label": {
+              "text": "Port:",
+              "tooltip": "COMポート番号を設定します(デバイスマネージャーで確認可能です)"
+            },
+            "combobox": {
+              "tooltip": "設定するCOMポート番号"
+            }
+          },
+          "baud_rate": {
+            "label": {
+              "text": "Baud Rate:",
+              "tooltip": "ボーレートを設定します(switch: 9600, GC: 4800)"
+            },
+            "combobox": {
+              "tooltip": "設定するボーレート"
+            }
+          },
+          "reload": {
+            "text": "Reload",
+            "tooltip": "設定したCOMポート番号とボーレートの情報に基づいてUSBシリアルとの接続を確立します"
+          },
+          "disconnect": {
+            "text": "Disconnect",
+            "tooltip": "USBシリアルとの接続を解除します"
+          }
+        },
+        "data": {
+          "format": {
+            "label": {
+              "text": "Data Format:"
+            }
+          },
+          "show_data": {
+            "text": "Show Serial",
+            "tooltip": "シリアル値を出力する機能を有効化します"
+          }
+        }
+      },
+      "manual_control": {
+        "software": {
+          "controller": {
+            "text": "Controller",
+            "tooltip": "Switch用ソフトウェアコントローラを起動します"
+          },
+          "keyboard": {
+            "use_keyboard": {
+              "text": "Use Keyboard",
+              "tooltip": "キーボードで操作する機能を有効化します"
+            }
+          },
+          "mouse": {
+            "use_lclick": {
+              "text": "Use Mouse LClick",
+              "tooltip": "ゲーム画面上で左クリックを押下した後、その状態でマウスを動かすことで左stickを動かす機能を有効化します"
+            },
+            "use_rclick": {
+              "text": "Use Mouse RClick",
+              "tooltip": "ゲーム画面上で右クリックを押下した後、その状態でマウスを動かすことで右stickを動かす機能を有効化します"
+            }
+          }
+        },
+        "hardware": {
+          "pro_controller": {
+            "use": {
+              "text": "Use Pro Controller",
+              "tooltip": "PCに接続したPro ControllerでSwitchを操作する機能を有効化します"
+            },
+            "record": {
+              "text": "Record Pro Controller",
+              "tooltip": "Pro Controllerで操作している際のログを記録する機能を有効化します"
+            }
+          }
+        }
+      },
+      "commands": {
+        "notebook": {
+          "python": {
+            "filter": {
+              "label": {
+                "text": "Filter:",
+                "tooltip": "実行可能なスクリプト(python)のリストをフィルタリングします"
+              },
+              "combobox": {
+                "tooltip": "実行可能なスクリプト(python)のフィルタリング条件"
+              }
+            },
+            "command": {
+              "label": {
+                "text": "Command:",
+                "tooltip": "実行するスクリプト(python)を設定します"
+              },
+              "combobox": {
+                "tooltip": "実行するスクリプト(python)"
+              }
+            }
+          },
+          "mcu": {
+            "filter": {
+              "label": {
+                "text": "Filter:",
+                "tooltip": "実行可能なスクリプト(mcu)のリストをフィルタリングします"
+              },
+              "combobox": {
+                "tooltip": "実行可能なスクリプト(mcu)のフィルタリング条件"
+              }
+            },
+            "command": {
+              "label": {
+                "text": "Command:",
+                "tooltip": "実行するスクリプト(mcu)を設定します"
+              },
+              "combobox": {
+                "tooltip": "実行するスクリプト(mcu)"
+              }
+            }
+          }
+        },
+        "open_dir": {
+          "tooltip": "スクリプト(.py)を保存するディレクトリを開きます"
+        },
+        "shortcut": {
+          "label": {
+            "text": "Shortcut:",
+            "tooltip": "ショートカットボタンに選択されているスクリプトを割り当てます"
+          },
+          "spinbox": {
+            "tooltip": "スクリプトを割り当てるショートカットボタンの番号"
+          }
+        },
+        "set": {
+          "text": "Set",
+          "tooltip": "ショートカットボタンへのスクリプトの割り当てを実行します"
+        },
+        "reload": {
+          "text": "Reload",
+          "tooltip": "自動化スクリプトを再度読み込みます"
+        },
+        "start": {
+          "text": "Start",
+          "tooltip": "自動化スクリプトを実行します"
+        },
+        "pause": {
+          "text": "Pause",
+          "tooltip": "自動化スクリプトの実行を一時停止します"
+        }
+      },
+      "notification": {
+        "desktop": {
+          "title": "Desktop Notification",
+          "start": {
+            "text": "Start",
+            "tooltip": "自動化スクリプト実行開始時に通知をします"
+          },
+          "end": {
+            "text": "End",
+            "tooltip": "自動化スクリプト実行終了時に通知をします"
+          },
+          "test": {
+            "text": "Test",
+            "tooltip": "テストメッセージを送信します"
+          }
+        },
+        "discord": {
+          "title": "Discord Notification",
+          "start": {
+            "text": "Start",
+            "tooltip": "自動化スクリプト実行開始時にDiscordで通知をします"
+          },
+          "end": {
+            "text": "End",
+            "tooltip": "自動化スクリプト実行終了時にDiscordで通知をします"
+          },
+          "test": {
+            "text": "Test",
+            "tooltip": "Discordでテストメッセージを送信します"
+          }
+        }
+      },
+      "others": {
+        "output": {
+          "size_adjuster": {
+            "text": "Size Adjuster",
+            "tooltip": "Output#1(上側)とOutput#2(下側)のサイズの比率を調整します"
+          },
+          "stdout": {
+            "1": {
+              "text": "Output#1",
+              "tooltip": "標準出力としてOutput#1(上側)を設定します"
+            },
+            "2": {
+              "text": "Output#2",
+              "tooltip": "標準出力としてOutput#2(下側)を設定します"
+            }
+          },
+          "clear": {
+            "1": {
+              "text": "Clear(#1)",
+              "tooltip": "Output#1(上側)の出力をクリアします"
+            },
+            "2": {
+              "text": "Clear(#2)",
+              "tooltip": "Output#2(下側)の出力をクリアします"
+            }
+          }
+        },
+        "widget": {
+          "display": {
+            "output1": {
+              "text": "Output#1",
+              "tooltip": "Output#1(上側)を表示するかを設定します"
+            },
+            "output2": {
+              "text": "Output#2",
+              "tooltip": "Output#2(下側)を表示するかを設定します"
+            },
+            "software_controller": {
+              "text": "Software-Controller",
+              "tooltip": "ソフトウェアコントローラーを表示するかを設定します"
+            }
+          },
+          "software_controller": {
+            "top": {
+              "text": "Top",
+              "tooltip": "ソフトウェアコントローラーを上側に表示します"
+            },
+            "bottom": {
+              "text": "Bottom",
+              "tooltip": "ソフトウェアコントローラーを下側に表示します"
+            }
+          },
+          "dialog": {
+            "confirm_buttons_position": {
+              "top": {
+                "text": "Top",
+                "tooltip": "ダイアログ起動時におけるOK/Cancelボタンを上側に表示します"
+              },
+              "bottom": {
+                "text": "Bottom",
+                "tooltip": "ダイアログ起動時におけるOK/Cancelボタンを下側に表示します"
+              },
+              "both": {
+                "text": "Both",
+                "tooltip": "ダイアログ起動時におけるOK/Cancelボタンを上下両方に表示します"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "discord": {
+    "title": "Discord Settings Assignment",
+    "webhook_url": "Webhook URL:",
+    "username": "Username:",
+    "avatar_url": "Avatar URL:",
+    "test": "Test"
+  },
+  "new_profile": {
+    "title": "新規プロファイル作成",
+    "profile": {
+      "text": "プロファイル名:",
+      "tooltip": "作成するプロファイルの名前"
+    },
+    "bat": {
+      "text": ".batファイル作成",
+      "tooltip": "作成するプロファイルでPoke-Conを起動するための.batファイルを作成します"
+    },
+    "copy": {
+      "text": "コピー",
+      "tooltip": "現在のプロファイルのコピーとして作成します"
+    },
+    "create": "作成",
+    "message": {
+      "created": "新規プロファイルが作成されました。",
+      "empty_profile_name": "プロファイル名を入力してください。",
+      "profile_already_exists": "同じ名前のプロファイルが既に存在します。"
+    }
+  },
+  "question": {
+    "title": "質問テンプレート",
+    "description": [
+      "--------------------------質問をする際の注意事項--------------------------",
+      "・質問の前に自分なりにドキュメントを読むなど各自調査を実施してください。",
+      "・項目すべてを記入してください。(空白がある場合、OKを押しても何も起きません。)",
+      "・個人を誹謗中傷するような記述はしないでください。"
+    ],
+    "program": "プログラム名:",
+    "author": "制作者様:",
+    "content": "質問内容(経緯などは簡潔に)",
+    "attempt": "試したこと(詳しく)",
+    "separator": {
+      "start": "---------------------------ここからコピペ---------------------------",
+      "end": "---------------------------ここまでコピペ---------------------------"
+    },
+    "message": {
+      "empty_program": "プログラム名を入力してください。",
+      "empty_author": "制作者様を入力してください。",
+      "empty_content": "質問内容を入力してください。",
+      "empty_attempt": "試したことを入力してください。",
+      "finish": [
+        "添付資料を準備してください。(以下は一例です。)",
+        "・動作の動画",
+        "・Poke-Conのログ",
+        "・コマンドプロンプト(コンソール)の画面",
+        "エラーが十分に出力されていることをご確認ください。"
+      ]
+    }
+  },
+  "version": {
+    "title": "バージョン確認"
+  },
+  "changelog": {
+    "title": "更新履歴"
+  },
+  "update": {
+    "title": "更新確認",
+    "message": {
+      "has_changes": "ローカルとリモートで差分があります。更新しますか？",
+      "no_changes": "更新はありません。",
+      "error": "更新に失敗しました。\n手動でGitリポジトリを最新に更新してください。",
+      "success": "更新が完了しました。",
+      "checkout_error": "ブランチの切り替えに失敗しました: {error}\n手動でGitリポジトリを最新に更新してください。"
+    }
+  },
+  "license": {
+    "title": "LICENSE"
+  }
+}

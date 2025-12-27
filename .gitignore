@@ -14,6 +14,7 @@
 !ExecutePokeConModified-Extension.bat
 !UpdatePokeConModified-Extension.bat
 .idea/
+!apps/poke-controller-modified-extension/translations/*.json
 SerialController/Captures/
 SerialController/Template/*
 !SerialController/Template/Samples/
