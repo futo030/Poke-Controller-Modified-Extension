@@ -39,7 +39,6 @@ from pokecontrollerext.singletons.runtime.resources import (
 from pokecontrollerext.singletons.runtime.runtime_info import (
     setup_runtime_info,
 )
-from pokecontrollerext.widgets.menu import Menu
 
 
 def run_app(*, base_dir: Path, profile: str) -> None:
@@ -72,10 +71,6 @@ def run_app(*, base_dir: Path, profile: str) -> None:
 
         # app
         app = App()
-
-        # menubar
-        menu = Menu(app)
-        app.config(menu=menu)
 
         # run app
         app.mainloop()
