@@ -1,4 +1,5 @@
 import sys
+import tkinter as tk
 from pathlib import Path
 from typing import Any
 
@@ -39,6 +40,7 @@ from pokecontrollerext.singletons.runtime.resources import (
 from pokecontrollerext.singletons.runtime.runtime_info import (
     setup_runtime_info,
 )
+from pokecontrollerext.windows.main import MainWindow
 
 
 def run_app(*, base_dir: Path, profile: str) -> None:
@@ -71,6 +73,10 @@ def run_app(*, base_dir: Path, profile: str) -> None:
 
         # app
         app = App()
+
+        # main window
+        main_window = MainWindow(app)
+        main_window.pack(expand=True, fill=tk.BOTH)
 
         # run app
         app.mainloop()
