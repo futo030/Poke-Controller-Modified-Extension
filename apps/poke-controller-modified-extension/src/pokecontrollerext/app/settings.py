@@ -3,6 +3,8 @@ from dataclasses import dataclass, fields, is_dataclass
 from tkinter import BooleanVar, DoubleVar, IntVar, StringVar, Variable
 from typing import Any, Self
 
+from pokecontroller.utils import platform
+
 from pokecontrollerext.app.exception import AppSettingsException
 
 logger = logging.getLogger(__name__)
@@ -167,7 +169,7 @@ SCHEMA: dict[str, Any] = {
 DEFAULT: dict[str, Any] = {
     "general": {
         "version": "0.2.0",
-        "theme": "default",
+        "theme": "vista" if platform.is_windows() else "default",
         "language": "en",
     },
     "capture": {
