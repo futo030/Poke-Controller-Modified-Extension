@@ -69,8 +69,6 @@ def parse_keymap_json(key_map_json: dict[str, dict[str, str]]) -> dict[Key | str
     parsed: dict[Key | str, Any] = {}
     for kind, value in key_map_json.items():
         for action, key in value.items():
-            if not isinstance(action, str):
-                continue
             if len(key) == 1:
                 parsed[key] = KEYMAP_JSON_ACTIONS[kind][action]
             else:
@@ -137,7 +135,7 @@ class SwitchKeyboard:
         logger.debug(f"on_press: {key}")
         action = self._get_action(key)
         if action is None:
-            logger.debug(f"on_press: action is None")
+            logger.debug("on_press: action is None")
             return
 
         if isinstance(action, SwitchButton):
@@ -156,7 +154,7 @@ class SwitchKeyboard:
         logger.debug(f"on_release: {key}")
         action = self._get_action(key)
         if action is None:
-            logger.debug(f"on_release: action is None")
+            logger.debug("on_release: action is None")
             return
 
         if isinstance(action, SwitchButton):
@@ -173,7 +171,7 @@ class SwitchKeyboard:
 
     def _get_action(self, key: Key) -> Any | None:
         if key is None:
-            logger.debug(f"_get_action: key is None")
+            logger.debug("_get_action: key is None")
             return None
         if hasattr(key, "char") and key.char in self._keymap:
             logger.debug(f"_get_action: key has char: {key.char}")
@@ -181,7 +179,7 @@ class SwitchKeyboard:
         elif key in self._keymap:
             logger.debug(f"_get_action: key is in keymap: {key}")
             return self._keymap[key]
-        logger.debug(f"_get_action: key not found")
+        logger.debug("_get_action: key not found")
         return None
 
     def _send_state(self) -> None:

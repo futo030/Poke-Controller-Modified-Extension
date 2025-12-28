@@ -25,7 +25,10 @@ from pokecontrollerext.singletons.runtime.runtime_info import (
 )
 
 if not platform.is_macos():
-    from pokecontroller.core.controller.switch.keyboard import SwitchKeyboard, parse_keymap_json
+    from pokecontroller.core.controller.switch.keyboard import (
+        SwitchKeyboard,
+        parse_keymap_json,
+    )
     from pokecontroller.core.controller.switch.pro_controller import SwitchProController
     from pokecontroller.core.controller.switch.serializers.leonardo import (
         SwitchControllerStateSerializer,
