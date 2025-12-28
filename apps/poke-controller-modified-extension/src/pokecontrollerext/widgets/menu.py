@@ -15,12 +15,12 @@ from pokecontrollerext.updater import (
     PokeControllerUpdater,
     PokeControllerUpdaterCheckoutBranchException,
 )
-from pokecontrollerext.windows.settings import SettingsWindow
 from pokecontrollerext.windows.changelogs import ChangelogWindow
 from pokecontrollerext.windows.discord import DiscordSettingsWindow
 from pokecontrollerext.windows.license import LicenseWindow
 from pokecontrollerext.windows.new_profile import NewProfileWindow
 from pokecontrollerext.windows.question import QuestionWindow
+from pokecontrollerext.windows.settings import SettingsWindow
 from pokecontrollerext.windows.version import VersionWindow
 
 logger = logging.getLogger(__name__)
