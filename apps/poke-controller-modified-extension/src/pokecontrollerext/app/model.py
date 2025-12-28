@@ -25,7 +25,10 @@ from pokecontrollerext.singletons.runtime.runtime_info import (
 )
 
 if not platform.is_macos():
-    from pokecontroller.core.controller.switch.keyboard import SwitchKeyboard
+    from pokecontroller.core.controller.switch.keyboard import (
+        SwitchKeyboard,
+        parse_keymap_json,
+    )
     from pokecontroller.core.controller.switch.pro_controller import SwitchProController
     from pokecontroller.core.controller.switch.serializers.leonardo import (
         SwitchControllerStateSerializer,
@@ -95,7 +98,7 @@ class AppModel:
         else:
             serial = self._app_resources.serial
             keymap = self._app_settings.to_dict()["device"]["keyboard"]["keymap"]
-            self._keyboard = SwitchKeyboard(serial, keymap)
+            self._keyboard = SwitchKeyboard(serial, parse_keymap_json(keymap))
 
         if platform.is_macos():
             self._pro_controller = None
