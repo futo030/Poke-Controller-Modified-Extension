@@ -23,6 +23,8 @@ Poke-Controller Modified Extensionは、主に以下の機能を提供してい�
 
 ## アーキテクチャ概要
 
+<img width="1280" height="720" alt="ARCHITECTURE" src="https://github.com/user-attachments/assets/44b26fa9-c489-43a9-970e-84f9d3c90fc5" />
+
 ### Poke-Controller PAPICO
 
 Poke-Controllerの公開APIを複数バージョンに渡って互換性を保った状態で提供するための仕組みです。  
@@ -82,7 +84,7 @@ Reactのhookのような遷移的な状態変更を行うこともできます�
 例えば、コマンド実行中に実行ボタンを押せなくするには以下のように書けます。
 
 ```python
-# variables
+# variable
 is_running = tk.BooleanVar(value=False)
 
 # is_runningの状態に応じてstart_buttonの状態を変更する
