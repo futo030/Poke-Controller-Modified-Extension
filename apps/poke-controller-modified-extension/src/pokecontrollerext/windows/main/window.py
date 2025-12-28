@@ -2,6 +2,8 @@ import math
 import tkinter as tk
 from typing import Any, Literal
 
+from pokecontroller.utils import platform
+
 from pokecontrollerext.singletons.app.model import get_app_model
 from pokecontrollerext.singletons.app.settings import get_app_settings
 from pokecontrollerext.widgets.frame import Frame
@@ -44,9 +46,13 @@ class MainWindow(Frame):
 
         # keyboard
         self._enabled_keyboard = self._app_settings.device.keyboard.enabled
+        if not platform.is_macos() and self._enabled_keyboard.get():
+            self._app_model.start_keyboard()
 
         # pro-controller
         self._enabled_pro_controller = self._app_settings.device.pro_controller.enabled
+        if not platform.is_macos() and self._enabled_pro_controller.get():
+            self._app_model.start_pro_controller()
 
         self._panes: dict[str, Frame] = {}
         self._frames: dict[str, Frame] = {}
@@ -54,6 +60,11 @@ class MainWindow(Frame):
         self.build_ui()
 
         master.after(0, self._adjust_outputs_size)
+
+    def destroy(self) -> None:
+        self._app_model.stop_keyboard()
+        self._app_model.stop_pro_controller()
+        super().destroy()
 
     @property
     def _outputs_pane(self) -> OutputsPane:
