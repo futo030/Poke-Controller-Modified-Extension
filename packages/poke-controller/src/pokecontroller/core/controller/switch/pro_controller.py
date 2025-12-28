@@ -139,7 +139,6 @@ class SwitchProController:
         else:
             self._state.button.release([SwitchButton.ZR])
 
-
     def _apply_joystick_value(self, stick: StickState, xy: tuple[float, float]) -> None:
         if np.sqrt(xy[0] ** 2 + xy[1] ** 2) < 0.35:
             stick.reset()
