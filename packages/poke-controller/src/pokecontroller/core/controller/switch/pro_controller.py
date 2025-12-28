@@ -93,18 +93,21 @@ class SwitchProController:
         logger.info("Starting Switch Pro Controller loop")
         self._enabled = True
 
-        pygame.joystick.init()
+        pygame.init()
+        logger.info(f"joystick count: {pygame.joystick.get_count()}")
         joystick = pygame.joystick.Joystick(0)
         joystick.init()
+        clock = pygame.time.Clock()
 
         try:
+            self._is_running = True
             while self._enabled:
-                self._is_running = True
                 events = pygame.event.get()
                 self._apply_joystick(joystick)
                 self._apply_events(events)
                 self._record_state()
                 self._send_state()
+                clock.tick(60)
         except Exception as e:
             logger.error(f"Error in Pro Controller loop: {e}")
         finally:
@@ -126,13 +129,24 @@ class SwitchProController:
         rx, ry = joystick.get_axis(2), joystick.get_axis(3)
         self._apply_joystick_value(rstick, (rx, ry))
 
+        zl, zr = joystick.get_axis(4), joystick.get_axis(5)
+        if zl >= 0.30:
+            self._state.button.push([SwitchButton.ZL])
+        else:
+            self._state.button.release([SwitchButton.ZL])
+        if zr >= 0.30:
+            self._state.button.push([SwitchButton.ZR])
+        else:
+            self._state.button.release([SwitchButton.ZR])
+
+
     def _apply_joystick_value(self, stick: StickState, xy: tuple[float, float]) -> None:
         if np.sqrt(xy[0] ** 2 + xy[1] ** 2) < 0.35:
             stick.reset()
         else:
             stick.set_xy(
                 self._adjust_stick_axis(xy[0]),
-                self._adjust_stick_axis(xy[1]),
+                SWITCH_STICK_AXIS_RANGE.max - self._adjust_stick_axis(xy[1]),
             )
         if stick.is_dirty:
             self._is_dirty = True
@@ -150,6 +164,7 @@ class SwitchProController:
             if event.type == pygame.JOYBUTTONDOWN:
                 self._is_dirty = True
                 button = event.dict["button"]
+                logger.debug(f"pressed button: {button}")
                 if button in BUTTON_MAP:
                     self._state.button.push([BUTTON_MAP[button]])
                 elif button in DPAD_MAP:
