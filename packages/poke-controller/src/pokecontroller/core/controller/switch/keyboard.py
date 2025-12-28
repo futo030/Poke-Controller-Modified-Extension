@@ -1,3 +1,4 @@
+import logging
 from typing import Any
 
 from pokecontroller.core.controller import StickTilt
@@ -12,6 +13,8 @@ from pokecontroller.utils import platform
 
 if not platform.is_macos():
     from pynput.keyboard import Key, Listener
+
+logger = logging.getLogger(__name__)
 
 KEYMAP_JSON_ACTIONS: dict[str, dict[str, Any]] = {
     "button": {
@@ -66,14 +69,15 @@ def parse_keymap_json(key_map_json: dict[str, dict[str, str]]) -> dict[Key | str
     parsed: dict[Key | str, Any] = {}
     for kind, value in key_map_json.items():
         for action, key in value.items():
-            if isinstance(key, str) and len(key) == 1:
+            if not isinstance(action, str):
+                continue
+            if len(key) == 1:
                 parsed[key] = KEYMAP_JSON_ACTIONS[kind][action]
-            elif isinstance(key, str):
+            else:
                 if key.isdigit():
                     parsed[key] = KEYMAP_JSON_ACTIONS[kind][action]
                 else:
-                    _, v = key.split(".")
-                    parsed[getattr(Key, v)] = KEYMAP_JSON_ACTIONS[kind][action]
+                    parsed[getattr(Key, key)] = KEYMAP_JSON_ACTIONS[kind][action]
     return parsed
 
 
@@ -93,7 +97,6 @@ class SwitchKeyboard:
         """
         self._serial = serial
         self._keymap = keymap
-        self._enabled = False
 
         self._state = SwitchControllerState()
         self._listener: Listener | None = None
@@ -104,7 +107,7 @@ class SwitchKeyboard:
 
         キーボードイベントの監視を開始し、入力の変換を有効にします。
         """
-        self._enabled = True
+        logger.info("Starting Keyboard Controller")
 
         if self._listener is not None:
             return
@@ -112,64 +115,73 @@ class SwitchKeyboard:
         self._listener = Listener(
             on_press=self._on_press,
             on_release=self._on_release,
-            daemon=True,
         )
         self._listener.start()
+        logger.info("Started Keyboard Controller")
 
     def stop(self) -> None:
         """キーボードリスナーを停止します.
 
         キーボードイベントの監視を停止し、入力の変換を無効にします。
         """
-        self._enabled = False
+        logger.info("Stopping Keyboard Controller")
 
         if (listener := self._listener) is None:
             return
         listener.stop()
         listener.join()
         self._listener = None
+        logger.info("Stopped Keyboard Controller")
 
     def _on_press(self, key: Key) -> None:
-        if not self._enabled:
-            return
-
+        logger.debug(f"on_press: {key}")
         action = self._get_action(key)
         if action is None:
+            logger.debug(f"on_press: action is None")
             return
 
         if isinstance(action, SwitchButton):
+            logger.debug(f"on_press: SwitchButton {action}")
             self._state.button.push([action])
         elif isinstance(action, SwitchDpad):
+            logger.debug(f"on_press: SwitchDpad {action}")
             self._state.dpad.add(action)
         elif isinstance(action, StickTilt):
+            logger.debug(f"on_press: StickTilt {action}")
             self._current_direction |= action
             self._state.lstick.tilt_full(self._current_direction)
         self._send_state()
 
     def _on_release(self, key: Key) -> None:
-        if not self._enabled:
-            return
-
+        logger.debug(f"on_release: {key}")
         action = self._get_action(key)
         if action is None:
+            logger.debug(f"on_release: action is None")
             return
 
         if isinstance(action, SwitchButton):
+            logger.debug(f"on_release: SwitchButton: {action}")
             self._state.button.release([action])
         elif isinstance(action, SwitchDpad):
+            logger.debug(f"on_release: SwitchDpad: {action}")
             self._state.dpad.sub(action)
         elif isinstance(action, StickTilt):
+            logger.debug(f"on_release: StickTilt: {action}")
             self._current_direction &= ~action
             self._state.lstick.tilt_full(self._current_direction)
         self._send_state()
 
     def _get_action(self, key: Key) -> Any | None:
         if key is None:
+            logger.debug(f"_get_action: key is None")
             return None
         if hasattr(key, "char") and key.char in self._keymap:
+            logger.debug(f"_get_action: key has char: {key.char}")
             return self._keymap[key.char]
         elif key in self._keymap:
+            logger.debug(f"_get_action: key is in keymap: {key}")
             return self._keymap[key]
+        logger.debug(f"_get_action: key not found")
         return None
 
     def _send_state(self) -> None:
