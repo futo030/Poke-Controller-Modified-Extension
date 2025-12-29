@@ -200,7 +200,7 @@ class Capture(Frame):
             outline=outline,
             tag=tag,
             width=width,
-            ratio=ratio,
+            ratio=ratio if ratio is not None else self._ratio,
             delete_after_ms=delete_after_ms,
         )
 
@@ -224,7 +224,7 @@ class Capture(Frame):
             outline=outline,
             tag=tag,
             width=width,
-            ratio=ratio,
+            ratio=ratio if ratio is not None else self._ratio,
             delete_after_ms=delete_after_ms,
         )
 
@@ -248,7 +248,7 @@ class Capture(Frame):
             font=font,
             color=color,
             tag=tag,
-            ratio=ratio,
+            ratio=ratio if ratio is not None else self._ratio,
             delete_after_ms=delete_after_ms,
         )
 
