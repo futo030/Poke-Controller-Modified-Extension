@@ -626,7 +626,7 @@ class Capture(Frame):
         if self._right_stick_mode == "Qingpi":
             self._on_qingpi_mouse_pressed(pressing_point)
         else:
-            if (rstick := self._lstick) is not None:
+            if (rstick := self._rstick) is not None:
                 self._on_switch_mouse_pressing(
                     pressing_point,
                     rstick,
@@ -641,7 +641,7 @@ class Capture(Frame):
         if self._right_stick_mode == "Qingpi":
             self._on_qingpi_mouse_released()
         else:
-            if (rstick := self._lstick) is not None:
+            if (rstick := self._rstick) is not None:
                 self._on_switch_mouse_released(
                     released_point,
                     rstick,
