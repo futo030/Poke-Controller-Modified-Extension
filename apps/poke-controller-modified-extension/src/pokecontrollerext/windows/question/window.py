@@ -55,7 +55,7 @@ class QuestionWindow(Window):
         description_label.pack(expand=True, anchor=tk.CENTER, padx=5, pady=5)
 
         # program
-        label_width = 18
+        label_width = 24
         program_frame = Frame(frame)
         program_label = Label(
             program_frame,

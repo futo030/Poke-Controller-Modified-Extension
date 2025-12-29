@@ -1,3 +1,4 @@
+import logging
 import tkinter as tk
 from typing import Any
 
@@ -12,6 +13,8 @@ from pokecontrollerext.widgets.frame import Frame
 from pokecontrollerext.widgets.label import Label
 from pokecontrollerext.widgets.separator import Separator
 from pokecontrollerext.widgets.window import Window
+
+logger = logging.getLogger(__name__)
 
 
 class DiscordSettingsWindow(Window):
@@ -59,7 +62,7 @@ class DiscordSettingsWindow(Window):
             (t("discord.avatar_url"), self._avatar_url),
         ]:
             row = Frame(frame)
-            label = Label(row, text=label_text, width=10)
+            label = Label(row, text=label_text, width=14)
             entry = Entry(row, textvariable=entry_var)
             label.pack(side=tk.LEFT)
             entry.pack(side=tk.LEFT, expand=True, fill=tk.X)
@@ -102,8 +105,11 @@ class DiscordSettingsWindow(Window):
 
     def _test_notify(self) -> None:
         self._assign_config()
-        notifier = DiscordNotifier(config=self._config)
-        notifier.notify(message=f"Test({t('discord.title')})")
+        try:
+            notifier = DiscordNotifier(config=self._config)
+            notifier.notify(message=f"Test({t('discord.title')})")
+        except Exception as e:
+            logger.error(f"{e}")
 
     def _save_config(self) -> None:
         self._assign_config()

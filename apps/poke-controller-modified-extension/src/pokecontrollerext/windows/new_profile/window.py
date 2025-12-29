@@ -50,7 +50,6 @@ class NewProfileWindow(Window):
         profile_frame = Frame(frame)
         profile_label = Label(
             profile_frame,
-            width=10,
             text=t("new_profile.profile"),
             tooltip=t("new_profile.profile.tooltip"),
         )
