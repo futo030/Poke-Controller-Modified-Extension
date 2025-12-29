@@ -119,6 +119,7 @@ class SettingsWindow(Window):
 
     def _on_ok_pressed(self) -> None:
         self._save_settings()
+        self._backup_settings()
         self.destroy()
 
     def _on_apply_pressed(self) -> None:
