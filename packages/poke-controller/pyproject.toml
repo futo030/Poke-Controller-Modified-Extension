@@ -8,7 +8,6 @@ authors = [
     { name = "futo030" },
     { name = "carimatics" },
 ]
-requires-python = "==3.12.*"
 dependencies = [
     "gitpython>=3.1.45",
     "numpy>=2.3.5",
@@ -28,7 +27,7 @@ dependencies = [
 ]
 
 [build-system]
-requires = ["uv_build>=0.9.9,<0.10.0"]
+requires = ["uv_build>=0.9.18,<0.10.0"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]
