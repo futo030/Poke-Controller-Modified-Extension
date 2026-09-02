@@ -59,9 +59,19 @@ class MouseStick(PythonCommand):
 
 class CaptureArea(tk.Canvas):
     def __init__(
-        self, camera, fps, right_mouse_mode, is_show, ser: KeyPress, master=None, show_width=640, show_height=360
+        self,
+        camera,
+        fps,
+        right_mouse_mode,
+        is_show,
+        ser: KeyPress,
+        master=None,
+        show_width=640,
+        show_height=360,
     ):
-        super().__init__(master, borderwidth=0, cursor="tcross", width=show_width, height=show_height)
+        super().__init__(
+            master, borderwidth=0, cursor="tcross", width=show_width, height=show_height
+        )
 
         self._logger = getLogger(__name__)
         self._logger.addHandler(NullHandler())
@@ -109,13 +119,17 @@ class CaptureArea(tk.Canvas):
         # self._logger.propagate = False
         if isTakeLog:
             filename_base = os.path.join("log", f"{nowtime}")
-            self.LS = logging.FileHandler(filename=f"{filename_base}_LStick.log", encoding="utf-8")
+            self.LS = logging.FileHandler(
+                filename=f"{filename_base}_LStick.log", encoding="utf-8"
+            )
             self.LS.setLevel(logging.DEBUG)
             self.LSTICK_logger = logging.getLogger("L_STICK")
             self.LSTICK_logger.setLevel(logging.DEBUG)
             self.LSTICK_logger.addHandler(self.LS)
 
-            self.RS = logging.FileHandler(filename=f"{filename_base}_RStick.log", encoding="utf-8")
+            self.RS = logging.FileHandler(
+                filename=f"{filename_base}_RStick.log", encoding="utf-8"
+            )
             self.RS.setLevel(logging.DEBUG)
             self.RSTICK_logger = logging.getLogger("R_STICK")
             self.RSTICK_logger.setLevel(logging.DEBUG)
@@ -133,7 +147,9 @@ class CaptureArea(tk.Canvas):
 
         self.bind("<Control-Alt-ButtonPress-1>", self.StartRangeSS)
         self.bind("<Control-Alt-Button1-Motion>", self.MotionRangeSS)
-        self.bind("<Control-Alt-ButtonRelease-1>", self.ReleaseRangeSS_asksaveasfilename)
+        self.bind(
+            "<Control-Alt-ButtonRelease-1>", self.ReleaseRangeSS_asksaveasfilename
+        )
 
         self.bind("<Control-ButtonPress-3>", self.StartRangeTouchscreen)
         self.bind("<Control-Button3-Motion>", self.MotionRangeTouchscreen)
@@ -169,19 +185,31 @@ class CaptureArea(tk.Canvas):
         self.min_x, self.min_y = event.x, event.y
         self.delete("SelectArea")
         self.create_rectangle(
-            self.min_x, self.min_y, self.min_x + 1, self.min_y + 1, width=3.0, outline="red", tag="SelectArea"
+            self.min_x,
+            self.min_y,
+            self.min_x + 1,
+            self.min_y + 1,
+            width=3.0,
+            outline="red",
+            tag="SelectArea",
         )
 
         ratio_x = float(self.camera.capture_size[0] / self.show_size[0])
         ratio_y = float(self.camera.capture_size[1] / self.show_size[1])
         print(
             "Mouse down: Show ({}, {}) / Capture ({}, {})".format(
-                self.min_x, self.min_y, int(self.min_x * ratio_x), int(self.min_y * ratio_y)
+                self.min_x,
+                self.min_y,
+                int(self.min_x * ratio_x),
+                int(self.min_y * ratio_y),
             )
         )
         self._logger.info(
             "Mouse down: Show ({}, {}) / Capture ({}, {})".format(
-                self.min_x, self.min_y, int(self.min_x * ratio_x), int(self.min_y * ratio_y)
+                self.min_x,
+                self.min_y,
+                int(self.min_x * ratio_x),
+                int(self.min_y * ratio_y),
             )
         )
 
@@ -199,8 +227,12 @@ class CaptureArea(tk.Canvas):
             self.max_y = 0
         else:
             self.max_y = min(self.show_height, event.y)
-        self.coords("SelectArea", self.min_x, self.min_y, self.max_x + 1, self.max_y + 1)
-        self.coords("SelectAreaFilled", self.min_x, self.min_y, self.max_x + 1, self.max_y + 1)
+        self.coords(
+            "SelectArea", self.min_x, self.min_y, self.max_x + 1, self.max_y + 1
+        )
+        self.coords(
+            "SelectAreaFilled", self.min_x, self.min_y, self.max_x + 1, self.max_y + 1
+        )
 
     def ReleaseRangeSS(self, event):
         # self.max_x, self.max_y = event.x, event.y
@@ -208,12 +240,18 @@ class CaptureArea(tk.Canvas):
         ratio_y = float(self.camera.capture_size[1] / self.show_size[1])
         print(
             "Mouse up: Show ({}, {}) / Capture ({}, {})".format(
-                self.max_x, self.max_y, int(self.max_x * ratio_x), int(self.max_y * ratio_y)
+                self.max_x,
+                self.max_y,
+                int(self.max_x * ratio_x),
+                int(self.max_y * ratio_y),
             )
         )
         self._logger.info(
             "Mouse up: Show ({}, {}) / Capture ({}, {})".format(
-                self.max_x, self.max_y, int(self.max_x * ratio_x), int(self.max_y * ratio_y)
+                self.max_x,
+                self.max_y,
+                int(self.max_x * ratio_x),
+                int(self.max_y * ratio_y),
             )
         )
         if self.min_x > self.max_x:
@@ -245,12 +283,18 @@ class CaptureArea(tk.Canvas):
         ratio_y = float(self.camera.capture_size[1] / self.show_size[1])
         print(
             "Mouse up: Show ({}, {}) / Capture ({}, {})".format(
-                self.max_x, self.max_y, int(self.max_x * ratio_x), int(self.max_y * ratio_y)
+                self.max_x,
+                self.max_y,
+                int(self.max_x * ratio_x),
+                int(self.max_y * ratio_y),
             )
         )
         self._logger.info(
             "Mouse up: Show ({}, {}) / Capture ({}, {})".format(
-                self.max_x, self.max_y, int(self.max_x * ratio_x), int(self.max_y * ratio_y)
+                self.max_x,
+                self.max_y,
+                int(self.max_x * ratio_x),
+                int(self.max_y * ratio_y),
             )
         )
         if self.min_x > self.max_x:
@@ -259,7 +303,10 @@ class CaptureArea(tk.Canvas):
             self.min_y, self.max_y = self.max_y, self.min_y
 
         filename = filedialog.asksaveasfilename(
-            title="名前を付けて保存", filetypes=[("PNG", ".png")], initialdir="./TEMPLATE/", defaultextension="png"
+            title="名前を付けて保存",
+            filetypes=[("PNG", ".png")],
+            initialdir="./TEMPLATE/",
+            defaultextension="png",
         )
         if filename != "":
             self.camera.saveCapture(
@@ -331,9 +378,15 @@ class CaptureArea(tk.Canvas):
 
     def ReleaseRangeTouchscreen(self, event):
         if self.touchscreen_start_x > self.touchscreen_end_x:
-            self.touchscreen_start_x, self.touchscreen_end_x = self.touchscreen_end_x, self.touchscreen_start_x
+            self.touchscreen_start_x, self.touchscreen_end_x = (
+                self.touchscreen_end_x,
+                self.touchscreen_start_x,
+            )
         if self.touchscreen_start_y > self.touchscreen_end_y:
-            self.touchscreen_start_y, self.touchscreen_end_y = self.touchscreen_end_y, self.touchscreen_start_y
+            self.touchscreen_start_y, self.touchscreen_end_y = (
+                self.touchscreen_end_y,
+                self.touchscreen_start_y,
+            )
 
         print(
             f"Touchscreen Area: ({self.touchscreen_start_x}, {self.touchscreen_start_y}), ({self.touchscreen_end_x}, {self.touchscreen_end_y})"
@@ -358,12 +411,20 @@ class CaptureArea(tk.Canvas):
         self.show_size = (self.show_width, self.show_height)
         self.config(width=self.show_width, height=self.show_height)
         print("Show size set to {0} x {1}".format(self.show_width, self.show_height))
-        self._logger.info("Show size set to {0} x {1}".format(self.show_width, self.show_height))
+        self._logger.info(
+            "Show size set to {0} x {1}".format(self.show_width, self.show_height)
+        )
 
     def changeRightMouseMode(self, mode):
         self.RightMouseMode = mode
 
-    def setTouchscreenArea(self, touchscreen_start_x, touchscreen_start_y, touchscreen_end_x, touchscreen_end_y):
+    def setTouchscreenArea(
+        self,
+        touchscreen_start_x,
+        touchscreen_start_y,
+        touchscreen_end_x,
+        touchscreen_end_y,
+    ):
         self.touchscreen_start_x = touchscreen_start_x
         self.touchscreen_start_y = touchscreen_start_y
         self.touchscreen_end_x = touchscreen_end_x
@@ -376,14 +437,20 @@ class CaptureArea(tk.Canvas):
         x, y = event.x, event.y
         ratio_x = float(self.camera.capture_size[0] / self.show_size[0])
         ratio_y = float(self.camera.capture_size[1] / self.show_size[1])
-        print("Mouse down: Show ({}, {}) / Capture ({}, {})".format(x, y, int(x * ratio_x), int(y * ratio_y)))
+        print(
+            "Mouse down: Show ({}, {}) / Capture ({}, {})".format(
+                x, y, int(x * ratio_x), int(y * ratio_y)
+            )
+        )
         print(
             f"Color [R: {_img[int(y * ratio_y), int(x * ratio_x)][0]}, "
             f"G: {_img[int(y * ratio_y), int(x * ratio_x)][1]}, "
             f"B: {_img[int(y * ratio_y), int(x * ratio_x)][2]}]"
         )
         self._logger.info(
-            "Mouse down: Show ({}, {}) / Capture ({}, {})".format(x, y, int(x * ratio_x), int(y * ratio_y))
+            "Mouse down: Show ({}, {}) / Capture ({}, {})".format(
+                x, y, int(x * ratio_x), int(y * ratio_y)
+            )
         )
 
     def mouseCtrlLeftRelease(self, event):
@@ -430,7 +497,10 @@ class CaptureArea(tk.Canvas):
     def mouseLeftPressing(self, event, ser, angle=0):
         # _time = self.calc_time
         langle = np.rad2deg(np.arctan2(self.ly_init - event.y, event.x - self.lx_init))
-        mag = np.sqrt((self.ly_init - event.y) ** 2 + (event.x - self.lx_init) ** 2) / self.radius
+        mag = (
+            np.sqrt((self.ly_init - event.y) ** 2 + (event.x - self.lx_init) ** 2)
+            / self.radius
+        )
         if mag <= 0:
             mag = 0
         elif mag >= 1:
@@ -493,7 +563,9 @@ class CaptureArea(tk.Canvas):
             self.BindRightClick()
         # self.event_generate('<Motion>', warp=True, x=self.lx_init, y=self.ly_init)
         if isTakeLog:
-            self.dq.append([self._langle, self._lmag, time.perf_counter() - self.calc_time])
+            self.dq.append(
+                [self._langle, self._lmag, time.perf_counter() - self.calc_time]
+            )
             for _ in self.dq:
                 self.LSTICK_logger.debug(",".join(list(map(str, _))))
 
@@ -501,7 +573,9 @@ class CaptureArea(tk.Canvas):
         if self.master.is_use_left_stick_mouse.get():
             self.UnbindLeftClick()
 
-        if self.RightMouseMode == "Qingpi":
+        if (self.RightMouseMode == "Qingpi") or (
+            "3DS Controller" in self.RightMouseMode
+        ):  # Modified 2026.09.02
             if (
                 self.touchscreen_start_x < event.x
                 and event.x < self.touchscreen_end_x
@@ -550,7 +624,9 @@ class CaptureArea(tk.Canvas):
             self._rmag = None
 
     def mouseRightPressing(self, event, ser, angle=0):
-        if self.RightMouseMode == "Qingpi":
+        if (self.RightMouseMode == "Qingpi") or (
+            "3DS Controller" in self.RightMouseMode
+        ):  # Modified 2026.09.02
             if (
                 self.touchscreen_start_x < event.x
                 and event.x < self.touchscreen_end_x
@@ -563,8 +639,13 @@ class CaptureArea(tk.Canvas):
                 pos_y = int(240.0 * (event.y - self.touchscreen_start_y) / height)
                 ser.input(Touchscreen(pos_x, pos_y))
         else:
-            rangle = np.rad2deg(np.arctan2(self.ry_init - event.y, event.x - self.rx_init))
-            mag = np.sqrt((self.ry_init - event.y) ** 2 + (event.x - self.rx_init) ** 2) / self.radius
+            rangle = np.rad2deg(
+                np.arctan2(self.ry_init - event.y, event.x - self.rx_init)
+            )
+            mag = (
+                np.sqrt((self.ry_init - event.y) ** 2 + (event.x - self.rx_init) ** 2)
+                / self.radius
+            )
             if mag <= 0:
                 mag = 0
             elif mag >= 1:
@@ -577,7 +658,8 @@ class CaptureArea(tk.Canvas):
                             Stick.RIGHT,
                             (
                                 int(128 + mag * 127.5 * np.cos(np.deg2rad(rangle))),
-                                255 - int(128 - mag * 127.5 * np.sin(np.deg2rad(rangle))),
+                                255
+                                - int(128 - mag * 127.5 * np.sin(np.deg2rad(rangle))),
                             ),
                         )
                     )
@@ -594,8 +676,12 @@ class CaptureArea(tk.Canvas):
                     )
                 )
             if mag >= 1:
-                center_x = (self.radius + self.radius // 11) * np.cos(np.deg2rad(rangle))
-                center_y = (self.radius + self.radius // 11) * np.sin(np.deg2rad(rangle))
+                center_x = (self.radius + self.radius // 11) * np.cos(
+                    np.deg2rad(rangle)
+                )
+                center_y = (self.radius + self.radius // 11) * np.sin(
+                    np.deg2rad(rangle)
+                )
                 circ_x_1 = self.rx_init + center_x - self.radius // 10
                 circ_x_2 = self.rx_init + center_x + self.radius // 10
                 circ_y_1 = self.ry_init - center_y - self.radius // 10
@@ -617,8 +703,12 @@ class CaptureArea(tk.Canvas):
             self._rmag = mag
 
     def mouseRightRelease(self, ser):
-        if self.RightMouseMode == "Qingpi":
+        if (self.RightMouseMode == "Qingpi") or (
+            "3DS Controller" in self.RightMouseMode
+        ):  # Modified 2026.09.02
             ser.inputEnd(Touchscreen(0, 0))
+            if self.master.is_use_left_stick_mouse.get():
+                self.BindLeftClick()
         else:
             self.config(cursor="tcross")
             self.ser.input(Direction(Stick.RIGHT, NEUTRAL))
@@ -629,7 +719,9 @@ class CaptureArea(tk.Canvas):
 
             # self.event_generate('<Motion>', warp=True, x=self.rx_init, y=self.ry_init)
             if isTakeLog:
-                self.dq.append([self._rangle, self._rmag, time.perf_counter() - self.calc_time])
+                self.dq.append(
+                    [self._rangle, self._rmag, time.perf_counter() - self.calc_time]
+                )
                 for _ in self.dq:
                     self.RSTICK_logger.debug(",".join(list(map(str, _))))
 
@@ -674,7 +766,13 @@ class CaptureArea(tk.Canvas):
             tag=tag,
         )
         self.create_rectangle(
-            x1 * ratio_x, y1 * ratio_y, x2 * ratio_x, y2 * ratio_y, width=2.5, outline=outline, tag=tag
+            x1 * ratio_x,
+            y1 * ratio_y,
+            x2 * ratio_x,
+            y2 * ratio_y,
+            width=2.5,
+            outline=outline,
+            tag=tag,
         )
         if flag:
             self.after(ms, self.deleteImageRect, tag)
@@ -683,12 +781,27 @@ class CaptureArea(tk.Canvas):
         self.delete(tag)
 
     def ImgText(
-        self, x1, y1, txt, tag, ms, ft=("UD デジタル 教科書体 NP-B", 20), color: str = "black", flag: bool = True
+        self,
+        x1,
+        y1,
+        txt,
+        tag,
+        ms,
+        ft=("UD デジタル 教科書体 NP-B", 20),
+        color: str = "black",
+        flag: bool = True,
     ):
         ratio_x = float(self.show_size[0] / self.camera.capture_size[0])
         ratio_y = float(self.show_size[1] / self.camera.capture_size[1])
         str_len = 0.3528 * ft[1] * len(txt)  # 1[pt] = 0.3528[mm]
-        self.create_text(((x1 - 1.0) * ratio_x) + str_len, (y1 - 1.0) * ratio_y, text=txt, font=ft, tag=tag, fill=color)
+        self.create_text(
+            ((x1 - 1.0) * ratio_x) + str_len,
+            (y1 - 1.0) * ratio_y,
+            text=txt,
+            font=ft,
+            tag=tag,
+            fill=color,
+        )
         if flag:
             self.after(ms, self.deleteImageText, tag)
 
@@ -747,52 +860,120 @@ class ControllerGUI:
         joycon_L_color = "#95f1ff"
         joycon_R_color = "#ff6b6b"
 
-        joycon_L_frame = tk.Frame(self.window, width=300, height=300, relief="flat", bg=joycon_L_color)
-        joycon_R_frame = tk.Frame(self.window, width=300, height=300, relief="flat", bg=joycon_R_color)
+        joycon_L_frame = tk.Frame(
+            self.window, width=300, height=300, relief="flat", bg=joycon_L_color
+        )
+        joycon_R_frame = tk.Frame(
+            self.window, width=300, height=300, relief="flat", bg=joycon_R_color
+        )
         hat_frame = tk.Frame(joycon_L_frame, relief="flat", bg=joycon_L_color)
         abxy_frame = tk.Frame(joycon_R_frame, relief="flat", bg=joycon_R_color)
 
         # ABXY
-        tk.Button(abxy_frame, text="A", command=lambda: UnitCommand.A().start(ser)).grid(row=1, column=2)
-        tk.Button(abxy_frame, text="B", command=lambda: UnitCommand.B().start(ser)).grid(row=2, column=1)
-        tk.Button(abxy_frame, text="X", command=lambda: UnitCommand.X().start(ser)).grid(row=0, column=1)
-        tk.Button(abxy_frame, text="Y", command=lambda: UnitCommand.Y().start(ser)).grid(row=1, column=0)
+        tk.Button(
+            abxy_frame, text="A", command=lambda: UnitCommand.A().start(ser)
+        ).grid(row=1, column=2)
+        tk.Button(
+            abxy_frame, text="B", command=lambda: UnitCommand.B().start(ser)
+        ).grid(row=2, column=1)
+        tk.Button(
+            abxy_frame, text="X", command=lambda: UnitCommand.X().start(ser)
+        ).grid(row=0, column=1)
+        tk.Button(
+            abxy_frame, text="Y", command=lambda: UnitCommand.Y().start(ser)
+        ).grid(row=1, column=0)
         abxy_frame.place(relx=0.2, rely=0.3)
 
         # HAT
-        tk.Button(hat_frame, text="UP", command=lambda: UnitCommand.UP().start(ser)).grid(row=0, column=1)
-        tk.Button(hat_frame, text="", command=lambda: UnitCommand.UP_RIGHT().start(ser)).grid(row=0, column=2)
-        tk.Button(hat_frame, text="RIGHT", command=lambda: UnitCommand.RIGHT().start(ser)).grid(row=1, column=2)
-        tk.Button(hat_frame, text="", command=lambda: UnitCommand.DOWN_RIGHT().start(ser)).grid(row=2, column=2)
-        tk.Button(hat_frame, text="DOWN", command=lambda: UnitCommand.DOWN().start(ser)).grid(row=2, column=1)
-        tk.Button(hat_frame, text="", command=lambda: UnitCommand.DOWN_LEFT().start(ser)).grid(row=2, column=0)
-        tk.Button(hat_frame, text="LEFT", command=lambda: UnitCommand.LEFT().start(ser)).grid(row=1, column=0)
-        tk.Button(hat_frame, text="", command=lambda: UnitCommand.UP_LEFT().start(ser)).grid(row=0, column=0)
+        tk.Button(
+            hat_frame, text="UP", command=lambda: UnitCommand.UP().start(ser)
+        ).grid(row=0, column=1)
+        tk.Button(
+            hat_frame, text="", command=lambda: UnitCommand.UP_RIGHT().start(ser)
+        ).grid(row=0, column=2)
+        tk.Button(
+            hat_frame, text="RIGHT", command=lambda: UnitCommand.RIGHT().start(ser)
+        ).grid(row=1, column=2)
+        tk.Button(
+            hat_frame, text="", command=lambda: UnitCommand.DOWN_RIGHT().start(ser)
+        ).grid(row=2, column=2)
+        tk.Button(
+            hat_frame, text="DOWN", command=lambda: UnitCommand.DOWN().start(ser)
+        ).grid(row=2, column=1)
+        tk.Button(
+            hat_frame, text="", command=lambda: UnitCommand.DOWN_LEFT().start(ser)
+        ).grid(row=2, column=0)
+        tk.Button(
+            hat_frame, text="LEFT", command=lambda: UnitCommand.LEFT().start(ser)
+        ).grid(row=1, column=0)
+        tk.Button(
+            hat_frame, text="", command=lambda: UnitCommand.UP_LEFT().start(ser)
+        ).grid(row=0, column=0)
         hat_frame.place(relx=0.2, rely=0.6)
 
         # L side
-        tk.Button(joycon_L_frame, text="L", width=20, command=lambda: UnitCommand.L().start(ser)).place(x=30, y=30)
-        tk.Button(joycon_L_frame, text="ZL", width=20, command=lambda: UnitCommand.ZL().start(ser)).place(x=30, y=0)
-        tk.Button(joycon_L_frame, text="LCLICK", width=7, command=lambda: UnitCommand.LCLICK().start(ser)).place(
-            x=120, y=120
-        )
-        tk.Button(joycon_L_frame, text="MINUS", width=5, command=lambda: UnitCommand.MINUS().start(ser)).place(
-            x=220, y=70
-        )
-        tk.Button(joycon_L_frame, text="CAP", width=5, command=lambda: UnitCommand.CAPTURE().start(ser)).place(
-            x=200, y=270
-        )
+        tk.Button(
+            joycon_L_frame,
+            text="L",
+            width=20,
+            command=lambda: UnitCommand.L().start(ser),
+        ).place(x=30, y=30)
+        tk.Button(
+            joycon_L_frame,
+            text="ZL",
+            width=20,
+            command=lambda: UnitCommand.ZL().start(ser),
+        ).place(x=30, y=0)
+        tk.Button(
+            joycon_L_frame,
+            text="LCLICK",
+            width=7,
+            command=lambda: UnitCommand.LCLICK().start(ser),
+        ).place(x=120, y=120)
+        tk.Button(
+            joycon_L_frame,
+            text="MINUS",
+            width=5,
+            command=lambda: UnitCommand.MINUS().start(ser),
+        ).place(x=220, y=70)
+        tk.Button(
+            joycon_L_frame,
+            text="CAP",
+            width=5,
+            command=lambda: UnitCommand.CAPTURE().start(ser),
+        ).place(x=200, y=270)
 
         # R side
-        tk.Button(joycon_R_frame, text="R", width=20, command=lambda: UnitCommand.R().start(ser)).place(x=120, y=30)
-        tk.Button(joycon_R_frame, text="ZR", width=20, command=lambda: UnitCommand.ZR().start(ser)).place(x=120, y=0)
-        tk.Button(joycon_R_frame, text="RCLICK", width=7, command=lambda: UnitCommand.RCLICK().start(ser)).place(
-            x=120, y=205
-        )
-        tk.Button(joycon_R_frame, text="PLUS", width=5, command=lambda: UnitCommand.PLUS().start(ser)).place(x=35, y=70)
-        tk.Button(joycon_R_frame, text="HOME", width=5, command=lambda: UnitCommand.HOME().start(ser)).place(
-            x=50, y=270
-        )
+        tk.Button(
+            joycon_R_frame,
+            text="R",
+            width=20,
+            command=lambda: UnitCommand.R().start(ser),
+        ).place(x=120, y=30)
+        tk.Button(
+            joycon_R_frame,
+            text="ZR",
+            width=20,
+            command=lambda: UnitCommand.ZR().start(ser),
+        ).place(x=120, y=0)
+        tk.Button(
+            joycon_R_frame,
+            text="RCLICK",
+            width=7,
+            command=lambda: UnitCommand.RCLICK().start(ser),
+        ).place(x=120, y=205)
+        tk.Button(
+            joycon_R_frame,
+            text="PLUS",
+            width=5,
+            command=lambda: UnitCommand.PLUS().start(ser),
+        ).place(x=35, y=70)
+        tk.Button(
+            joycon_R_frame,
+            text="HOME",
+            width=5,
+            command=lambda: UnitCommand.HOME().start(ser),
+        ).place(x=50, y=270)
 
         joycon_L_frame.grid(row=0, column=0)
         joycon_R_frame.grid(row=0, column=1)
@@ -802,9 +983,13 @@ class ControllerGUI:
             self.applyButtonSetting(button)
         for button in hat_frame.winfo_children():
             self.applyButtonSetting(button)
-        for button in [b for b in joycon_L_frame.winfo_children() if type(b) is tk.Button]:
+        for button in [
+            b for b in joycon_L_frame.winfo_children() if type(b) is tk.Button
+        ]:
             self.applyButtonColor(button)
-        for button in [b for b in joycon_R_frame.winfo_children() if type(b) is tk.Button]:
+        for button in [
+            b for b in joycon_R_frame.winfo_children() if type(b) is tk.Button
+        ]:
             self.applyButtonColor(button)
 
         self._logger.debug("Create GUI controller")

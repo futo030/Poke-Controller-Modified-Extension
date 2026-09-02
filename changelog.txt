@@ -1,3 +1,10 @@
+■ver.0.1.9
+  ・3DS Controllerにおけるタッチスクリーン操作に対応
+    ・シリアルデータにタッチスクリーン制御用データを追加
+  ・3DS Controller FW:x.4以降に対応
+    ・スティック制御のプロトコル変更に対応した3DS Controller(FW:x.4-)モードを追加
+    ・旧プロトコルは3DS Controller(FW:-x.3)モードと名称変更
+
 ■ver.0.1.8
   ・Line Notify API完全終了に伴う修正を実施
     ・LINE Notifyサービス終了に伴う起動できない問題を修正

@@ -8,13 +8,13 @@ import numpy as np
 
 
 class Qingpi_Touchscreen_sample(PythonCommand):
-    NAME = 'Qingpi_Touchscreen_sample'
+    NAME = "Qingpi_Touchscreen_sample"
 
     def __init__(self):
         super().__init__()
 
     def do(self):
-
+        # 3DS Controllerでも使えます。
         center_x = 160
         center_y = 120
         r = 50
