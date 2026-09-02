@@ -40,6 +40,7 @@ from pokecontrollerext.singletons.runtime.resources import (
 from pokecontrollerext.singletons.runtime.runtime_info import (
     setup_runtime_info,
 )
+from pokecontrollerext.widgets.menu import Menu
 from pokecontrollerext.windows.main import MainWindow
 
 
@@ -74,9 +75,15 @@ def run_app(*, base_dir: Path, profile: str) -> None:
         # app
         app = App()
 
+        # menu
+        menu = Menu(app)
+        app.config(menu=menu)
+
         # main window
         main_window = MainWindow(app)
         main_window.pack(expand=True, fill=tk.BOTH)
+
+        main_window.focus_force()
 
         # run app
         app.mainloop()
