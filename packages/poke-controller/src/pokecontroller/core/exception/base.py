@@ -1,0 +1,2 @@
+class PokeControllerException(Exception):
+    pass
