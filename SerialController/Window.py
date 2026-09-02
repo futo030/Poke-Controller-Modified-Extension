@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-import argparse
 import sys
 import os
 import re
@@ -16,6 +15,7 @@ import tkinter.messagebox as tkmsg
 import Constant
 from serial.tools import list_ports
 from logging import getLogger, DEBUG, NullHandler
+
 
 try:
     from plyer import notification
@@ -2150,22 +2150,18 @@ class StdoutRedirector(object):
         pass
 
 
-if __name__ == "__main__":
-    import tkinter as tk
+import argparse
+from pathlib import Path
 
+from pokecontrollerext import run_app
+
+
+if __name__ == '__main__':
+    # args
     parser = argparse.ArgumentParser(description="Switch/GC automation support software using Python")
     parser.add_argument("--profile", "-p", help="profile", type=str, default="default")
     args = parser.parse_args()
 
-    logger = PokeConLogger.root_logger()
-    # logger.info('The root logger is created.')
+    base_dir = Path(__file__).parent
 
-    if not flag_import_plyer:
-        tkmsg.showwarning(
-            "Warning",
-            '"plyer" is not installed. Some notification functions are not available. We recommend installing with "pip install plyer".',
-        )
-
-    root = tk.Tk()
-    app = PokeControllerApp(root, args.profile)
-    app.run()
+    run_app(base_dir=base_dir, profile=args.profile)
