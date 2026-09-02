@@ -1,0 +1,30 @@
+name: Test
+on:
+  pull_request:
+    branches:
+      - master
+      - develop
+      - rf_by_pro # tmp
+  push:
+    branches:
+      - master
+      - develop
+      - rf_by_pro # tmp
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Install Task
+        uses: go-task/setup-task@v1
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+      - name: Setup Runtime via uv
+        run: uv sync
+      - name: CI (Lint/Format/Typecheck)
+        run: task ci

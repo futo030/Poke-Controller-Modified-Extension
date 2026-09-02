@@ -1,0 +1,11 @@
+include = [
+    "packages/**/*.py",
+    "apps/**/*.py"
+]
+
+[lint]
+extend-select = ["I"]
+
+[lint.isort]
+case-sensitive = true
+combine-as-imports = true
