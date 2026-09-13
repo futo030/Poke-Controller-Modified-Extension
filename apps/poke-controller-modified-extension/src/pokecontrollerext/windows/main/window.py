@@ -57,6 +57,7 @@ class MainWindow(Frame):
         self._panes: dict[str, Frame] = {}
         self._frames: dict[str, Frame] = {}
         self._register_traces()
+        self._bind_all()
         self.build_ui()
 
         master.after(0, self._adjust_outputs_size)
@@ -205,6 +206,13 @@ class MainWindow(Frame):
         t1.configure(height=height1)
         t2.configure(height=height2)
 
+    def _bind_all(self) -> None:
+        self._bind_focus()
+
+    def _bind_focus(self) -> None:
+        self.bind("<FocusIn>", self._on_focus_in)
+        self.bind("<FocusOut>", self._on_focus_out)
+
     def _on_widget_visibility_changed(self, *_: Any) -> None:
         self._layout_right_frame()
 
@@ -233,3 +241,9 @@ class MainWindow(Frame):
             self._app_model.start_pro_controller()
         else:
             self._app_model.stop_pro_controller()
+
+    def _on_focus_in(self, *_: Any) -> None:
+        self._on_enabled_keyboard_changed()
+
+    def _on_focus_out(self, *_: Any) -> None:
+        self._app_model.stop_keyboard()

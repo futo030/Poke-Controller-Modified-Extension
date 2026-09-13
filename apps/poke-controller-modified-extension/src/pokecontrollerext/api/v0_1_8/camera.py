@@ -62,7 +62,6 @@ class Camera:
     _camera: cameralib.Camera
 
     def __init__(self, fps: int = 45):
-        self.image_bgr: imagelib.RawImage | None = None
         resources = get_app_resources()
         self._camera = resources.camera
         self._fps = fps
@@ -82,6 +81,10 @@ class Camera:
         pass
 
     @property
+    def image_bgr(self) -> imagelib.RawImage | None:
+        return self._camera.frame
+
+    @property
     def capture_size(self) -> tuple[int, int]:
         return self._camera.frame_size
 
@@ -96,8 +99,8 @@ class Camera:
         return self._camera.is_opened
 
     def readFrame(self) -> imagelib.RawImage | None:  # noqa
-        _, self.image_bgr = self._camera.read()
-        return self.image_bgr
+        _, frame = self._camera.read()
+        return frame
 
     def saveCapture(  # noqa
         self,
@@ -106,16 +109,8 @@ class Camera:
         crop_ax: list[int] | None = None,
         img: imagelib.RawImage | None = None,
     ) -> None:
-        if crop_ax is None:
-            c = [0, 0, self.capture_size[0], self.capture_size[1]]
-        else:
-            c = crop_ax
-
-        if img is not None:
-            src = img
-        elif self.image_bgr is not None:
-            src = self.image_bgr
-        else:
+        src = img if img is not None else self._camera.frame
+        if src is None:
             # 保存するべきものが何もないのでここで処理を終える
             logger.warning("No image to save")
             return
@@ -124,7 +119,11 @@ class Camera:
         if crop_fmt is None:
             image = src
         else:
-            imagelib_utils.convert_to_default(c, crop_fmt)
+            c = (
+                [0, 0, self.capture_size[0], self.capture_size[1]]
+                if crop_ax is None
+                else imagelib_utils.convert_to_default(crop_ax, crop_fmt)
+            )
             args = imagelib.ImageCropArgs(
                 sy=c[0],
                 ey=c[1],
@@ -133,10 +132,10 @@ class Camera:
             )
             image = imagelib.crop(src, args)
 
-        if not filename:
+        if filename is None:
             fn = f"{datetimelib.format_datetime()}.png"
         else:
-            fn = filename + ".png"
+            fn = f"{filename}.png"
         save_path = Path(_get_save_filespec(fn))
         save_dir = save_path.parent
         if not save_dir.exists() or not save_dir.is_dir():

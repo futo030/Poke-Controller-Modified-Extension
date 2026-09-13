@@ -601,20 +601,25 @@ class ImageProcPythonCommand(PythonCommand):
             tag = generateRandomCharacter(10)
 
         if self.gui is not None or self.isGuide:
+            capture_size = self.camera.capture_size
+            canvas_size = (canvas.winfo_width(), canvas.winfo_height())
+            ratio = (canvas_size[0] / capture_size[0], canvas_size[1] / capture_size[1])
             if crop_pillow != []:
                 start = tuple(crop_pillow[0:2])
                 end = tuple(crop_pillow[2:4])
                 canvas.draw_rect(
-                    start=start,
-                    end=end,
+                    start=(start[0] * ratio[0], start[1] * ratio[1]),
+                    end=(end[0] * ratio[0], end[1] * ratio[1]),
                     outline=color[1],
+                    width=3.0,
                     tag=tag,
-                    delete_after_ms=None,
+                    delete_after_ms=int(ms),
                 )
             canvas.draw_rect(
-                top_left,
-                bottom_right,
+                start=(top_left[0] * ratio[0], top_left[1] * ratio[1]),
+                end=(bottom_right[0] * ratio[0], bottom_right[1] * ratio[1]),
                 outline=color[0],
+                width=3.0,
                 tag=tag,
                 delete_after_ms=int(ms),
             )

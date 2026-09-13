@@ -53,8 +53,6 @@ class CommandsSettings(Frame):
 
     def __init__(self, master: tk.Misc, *args: Any, **kwargs: Any) -> None:
         super().__init__(master, *args, **kwargs)
-        self._command_loading = True
-
         self._papico = get_papico()
         self._app_runtime_info = get_app_runtime_info()
         self._app_settings = get_app_settings()
@@ -81,7 +79,6 @@ class CommandsSettings(Frame):
         self.build_ui()
         self._register_traces()
         self._register_binds()
-        self._command_loading = False
 
     def build_ui(self) -> None:
         upper_frame = Frame(self)
@@ -225,6 +222,7 @@ class CommandsSettings(Frame):
                 ),
                 textvariable=var,
                 values=values,
+                state="readonly",
             )
             if var.get() == "" and len(values) > 0:
                 combobox.current(0)
@@ -391,7 +389,7 @@ class CommandsSettings(Frame):
 
     def _on_open_dir_pressed(self) -> None:
         base_dir = self._app_runtime_info.base_dir / "Commands"
-        if self._notebook.index(self._notebook.select()) == 1:
+        if self._is_tab_mcu_command():
             path = base_dir / "McuCommands"
         else:
             path = base_dir / "PythonCommands"
@@ -404,11 +402,17 @@ class CommandsSettings(Frame):
         print(program)
         subprocess.run(program)
 
+    def _is_tab_python_command(self) -> bool:
+        return int(self._notebook.index("current")) == 0
+
+    def _is_tab_mcu_command(self) -> bool:
+        return int(self._notebook.index("current")) == 1
+
     def _on_set_pressed(self) -> None:
         shortcut_number = self._shortcut_number.get()
-        if self._notebook.index(self._notebook.select()) == 0:
+        if self._is_tab_python_command():
             klass = "Python"
-        elif self._notebook.index(self._notebook.select()) == 1:
+        elif self._is_tab_mcu_command():
             klass = "Mcu"
         else:
             return
@@ -512,10 +516,8 @@ class CommandsSettings(Frame):
         self._on_stop_pressed()
 
     def _on_reload_pressed(self) -> None:
-        self._command_loading = True
         self._load_commands()
         self._update_commands()
-        self._command_loading = False
 
     def _on_start_pressed(self) -> None:
         self._start_command()
@@ -537,7 +539,7 @@ class CommandsSettings(Frame):
         self._update_commands()
 
     def _on_python_command_changed(self, *_: str) -> None:
-        if self._command_loading:
+        if self._is_tab_mcu_command():
             return
 
         for command in [
@@ -548,7 +550,7 @@ class CommandsSettings(Frame):
                 return
 
     def _on_mcu_command_changed(self, *_: str) -> None:
-        if self._command_loading:
+        if not self._is_tab_mcu_command():
             return
 
         for command in [command for command in self._commands if command.kind == MCU]:
