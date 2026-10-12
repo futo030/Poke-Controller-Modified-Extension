@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
+import os
 import sys
 import tkinter as tk
 import tkinter.ttk as ttk
@@ -9,7 +10,14 @@ import tkinter.messagebox as tkmsg
 import tkinter.scrolledtext as st
 import platform
 import Constant
-import pkg_resources
+from typing import TYPE_CHECKING
+
+# リポジトリの直下(requirements.txt、changelog.txt、LICENSE がある。どこから起動しても、ここから読む)
+REPOSITORY_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+if TYPE_CHECKING:
+    from Commands.CommandBase import Command
+
 
 # ソースコードの見た目がよくないので、こっちで定義する。
 QUESTION_TITLE = """--------------------------質問をする際の注意事項--------------------------
@@ -23,7 +31,12 @@ class PokeConQuestionDialogue(object):
     pokeconに対する問い合わせ用文章を出力する
     """
 
-    def __init__(self, parent, command=None):
+    def __init__(self, parent: tk.Toplevel, command: Command | None = None):
+        """
+        質問の内容を入力する画面を表示し、閉じられるまで待つ
+        parent: 画面にするウィンドウ(呼び出し側で作って渡す)
+        command: 最後に実行したコマンド(プログラム名と制作者の欄の初期値に使う。無ければ None)
+        """
         self._ls = None
         self.isOK = None
 
@@ -102,10 +115,11 @@ class PokeConQuestionDialogue(object):
         self.main_frame.pack()
         self.message_dialogue.master.wait_window(self.message_dialogue)
 
-    def output_text(self):
+    def output_text(self) -> None:
+        """OK で閉じた場合に、質問用の文章(入力した内容と、OS・Python などの環境)を出力画面に表示する"""
         if self.isOK:
             txt = "---------------------------ここからコピペ---------------------------\n"
-            txt += f'■プログラム名\n"{self._ls[0]}\n'
+            txt += f"■プログラム名\n{self._ls[0]}\n"
             txt += f"■製作者様\n{self._ls[1]}\n"
             txt += f"■使用ツール\n{Constant.NAME} {Constant.VERSION}\n"
 
@@ -127,11 +141,13 @@ class PokeConQuestionDialogue(object):
             )
             tkmsg.showinfo("注意", checktext)
 
-    def close_window(self):
+    def close_window(self) -> None:
+        """ウィンドウの × ボタン: 文章を出力せずに閉じる"""
         self.message_dialogue.destroy()
         self.isOK = False
 
-    def ok_command(self):
+    def ok_command(self) -> None:
+        """OK ボタン: 入力した内容を覚えて閉じる(空の欄がある場合は閉じない)"""
         self._ls = [
             self.box0.get(),
             self.box1.get(),
@@ -146,54 +162,10 @@ class PokeConQuestionDialogue(object):
             self.message_dialogue.destroy()
             self.isOK = True
 
-    def cancel_command(self):
+    def cancel_command(self) -> None:
+        """Cancel ボタン: 文章を出力せずに閉じる"""
         self.message_dialogue.destroy()
         self.isOK = False
-
-
-class PokeConVersionCheck(object):
-    """
-    PokeCon/pythonおよびライブラリのversionを確認する
-    """
-
-    def __init__(self, parent, pokeconname: str, pokeconversion: str):
-        txt = f"■{pokeconname}\n{pokeconversion}\n\n"
-        if platform.system() == "Darwin":
-            # MacOS
-            txt += f"■OS\n{platform.mac_ver()}(Mac)\n\n"
-        else:
-            txt += f"■OS\n{platform.platform()}\n\n"
-        txt += f"■Python version\n{sys.version.split(' ')[0]}\n\n"
-        txt += "■Libraries version\n"
-        with open("../requirements.txt", "r") as file:
-            for line in file:
-                library_name = line.strip()
-                try:
-                    version = pkg_resources.get_distribution(library_name).version
-                    txt += f"{library_name}: {version}\n"
-                except pkg_resources.DistributionNotFound:
-                    txt += f"{library_name}: Not installed\n"
-                except Exception:
-                    pass
-        self.window = parent
-        self.window.title("Version確認")
-        self.window.attributes("-topmost", True)
-        self.window.protocol("WM_DELETE_WINDOW", self.close_window)
-
-        self.main_frame = tk.Frame(self.window)
-        self.main_text = ttk.Label(self.main_frame, text=txt, anchor="center")
-        self.main_text.grid(column=0, ipadx="10", ipady="10", row=0, sticky="nsew")
-
-        self.OK = ttk.Button(self.main_frame, command=self.close_window)
-        self.OK.configure(text="OK")
-        self.OK.grid(column=0, padx="10", pady="10", row=1)
-        self.OK.grid_anchor("center")
-        self.main_frame.pack()
-
-        self.window.master.wait_window(self.window)
-
-    def close_window(self):
-        self.window.destroy()
 
 
 class PokeConChangeLog(object):
@@ -201,12 +173,19 @@ class PokeConChangeLog(object):
     更新履歴を表示する
     """
 
-    def __init__(self, parent):
+    def __init__(self, parent: tk.Toplevel):
+        """
+        リポジトリの直下の changelog.txt の内容を表示し、閉じられるまで待つ
+        (開けない場合は、メッセージを表示し、渡されたウィンドウを閉じて、何も作らない)
+        parent: 画面にするウィンドウ(呼び出し側で作って渡す)
+        """
         try:
-            with open("../changelog.txt", "r", encoding="utf-8") as f:
+            with open(os.path.join(REPOSITORY_DIR, "changelog.txt"), "r", encoding="utf-8") as f:
                 txt = "".join(f.readlines())
         except Exception:
             print("changelog.txtが開けません。")
+            parent.destroy()
+            return
 
         self.window = parent
         self.window.title("更新履歴")
@@ -236,7 +215,8 @@ class PokeConChangeLog(object):
 
         self.window.master.wait_window(self.window)
 
-    def close_window(self):
+    def close_window(self) -> None:
+        """OK ボタン、またはウィンドウの × ボタン: ウィンドウを閉じる"""
         self.window.destroy()
 
 
@@ -245,12 +225,18 @@ class PokeConCopyright(object):
     pokeconでLicenseを表示する
     """
 
-    def __init__(self, parent):
+    def __init__(self, parent: tk.Toplevel):
+        """
+        リポジトリの直下の LICENSE の内容を表示し、閉じられるまで待つ
+        (開けない場合は、メッセージを表示し、渡されたウィンドウを閉じて、何も作らない)
+        parent: 画面にするウィンドウ(呼び出し側で作って渡す)
+        """
         try:
-            with open("../LICENSE", "r") as f:
+            with open(os.path.join(REPOSITORY_DIR, "LICENSE"), "r", encoding="utf-8") as f:
                 txt = "".join(f.readlines())
         except Exception:
             print("LICENSEファイルが開けません。")
+            parent.destroy()
             return
 
         self.window = parent
@@ -270,5 +256,6 @@ class PokeConCopyright(object):
 
         self.window.master.wait_window(self.window)
 
-    def close_window(self):
+    def close_window(self) -> None:
+        """OK ボタン、またはウィンドウの × ボタン: ウィンドウを閉じる"""
         self.window.destroy()

@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import re
 
-from Commands.Keys import Button, Direction, Hat
+from Commands.Keys import Button, Direction
 from Commands.PythonCommandBase import PythonCommand
 # import numpy as np
 from scipy.sparse.csgraph import shortest_path  # , floyd_warshall, dijkstra, bellman_ford, johnson

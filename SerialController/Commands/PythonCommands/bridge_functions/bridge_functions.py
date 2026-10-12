@@ -15,6 +15,32 @@ developed by フウ
 # initにてPokeConの種類を判定する。
 
 
+def convert_crop(crop_fmt: int | str = "", crop: List[int] = []) -> List[int]:
+    """
+    Extension版の crop_fmt と crop を、Modified版の crop([x軸始点, y軸始点, x軸終点, y軸終点])に変換する。
+    crop_fmt を指定しない場合は、そのまま返す(Extension版でも同じ並びとして扱われる)
+    """
+    if crop is None or len(crop) != 4:
+        return []
+    c = list(crop)
+    fmt = str(crop_fmt)
+    if fmt == "2":  # [x軸始点, y軸始点, 横のサイズ, 縦のサイズ]
+        return [c[0], c[1], c[0] + c[2], c[1] + c[3]]
+    if fmt == "3":  # [x軸始点, x軸終点, y軸始点, y軸終点]
+        return [c[0], c[2], c[1], c[3]]
+    if fmt == "4":  # [x軸始点, 横のサイズ, y軸始点, 縦のサイズ]
+        return [c[0], c[2], c[0] + c[1], c[2] + c[3]]
+    if fmt == "11":  # [y軸始点, x軸始点, y軸終点, x軸終点]
+        return [c[1], c[0], c[3], c[2]]
+    if fmt == "12":  # [y軸始点, x軸始点, 縦のサイズ, 横のサイズ]
+        return [c[1], c[0], c[1] + c[3], c[0] + c[2]]
+    if fmt == "13":  # [y軸始点, y軸終点, x軸始点, x軸終点]
+        return [c[2], c[0], c[3], c[1]]
+    if fmt == "14":  # [y軸始点, 縦のサイズ, x軸始点, 横のサイズ]
+        return [c[2], c[0], c[2] + c[3], c[0] + c[1]]
+    return c  # crop_fmt=1 または指定なし: [x軸始点, y軸始点, x軸終点, y軸終点]
+
+
 def remove_next_item(dialogue_list):
     dialogue_list_out = []
     for widget_list in dialogue_list:
@@ -42,6 +68,15 @@ class BridgeFunctions(object):
         None: Poke-Controller(本家)
         """
         return self.is_extension
+
+    def _finish_if_canceled(self, ret):
+        """
+        Modified版でダイアログがキャンセルされた場合(戻り値が False / None)は、
+        Extension版と同じようにスクリプトを終了する
+        """
+        if ret is False or ret is None:
+            self.commands.finish()
+        return ret
 
     def get_profile_name(self) -> str:
         """
@@ -140,7 +175,7 @@ class BridgeFunctions(object):
                 show_position=show_position,
                 show_only_true_rect=show_only_true_rect,
                 ms=ms,
-                crop=crop,
+                crop=convert_crop(crop_fmt, crop),
                 mask_path=mask_path,
             )
 
@@ -189,7 +224,7 @@ class BridgeFunctions(object):
                 show_position=show_position,
                 show_only_true_rect=show_only_true_rect,
                 ms=ms,
-                crop=crop,
+                crop=convert_crop(crop_fmt, crop),
             )
 
         return max_idx, max_val_list, judge_list
@@ -202,7 +237,7 @@ class BridgeFunctions(object):
         if self.is_extension:
             ret = self.commands.dialogue(title, message, desc=desc, need=need)
         else:
-            ret = self.commands.dialogue(title, message, need=need)
+            ret = self._finish_if_canceled(self.commands.dialogue(title, message, need=need))
         return ret
 
     def bf_dialogue6widget(self, title: str, dialogue_list: list, desc: str = None, need: type = list) -> list | dict:
@@ -214,7 +249,7 @@ class BridgeFunctions(object):
             ret = self.commands.dialogue6widget(title, dialogue_list, desc=desc, need=need)
         else:
             dialogue_list = remove_next_item(dialogue_list)
-            ret = self.commands.dialogue6widget(title, dialogue_list, need=need)
+            ret = self._finish_if_canceled(self.commands.dialogue6widget(title, dialogue_list, need=need))
         return ret
 
     def bf_dialogue6widget_save_settings(
@@ -229,7 +264,7 @@ class BridgeFunctions(object):
             ret = self.commands.dialogue6widget_save_settings(title, dialogue_list, filename, desc=desc, need=need)
         else:
             dialogue_list = remove_next_item(dialogue_list)
-            ret = self.commands.dialogue6widget(title, dialogue_list, need=need)
+            ret = self._finish_if_canceled(self.commands.dialogue6widget(title, dialogue_list, need=need))
         return ret
 
     def bf_dialogue6widget_select_settings(
@@ -244,7 +279,7 @@ class BridgeFunctions(object):
             ret = self.commands.dialogue6widget_select_settings(title, dialogue_list, dirname, desc=desc, need=need)
         else:
             dialogue_list = remove_next_item(dialogue_list)
-            ret = self.commands.dialogue6widget(title, dialogue_list, need=need)
+            ret = self._finish_if_canceled(self.commands.dialogue6widget(title, dialogue_list, need=need))
         return ret
 
     def bf_show_informations(
@@ -261,8 +296,9 @@ class BridgeFunctions(object):
 
         text = "---------------------------------------------\n"
 
-        if self.is_extension:
-            name = name[: -(len(name.split("(")[-1]) + 1)]
+        # Extension版ではコマンド名の末尾に「 (フォルダ名)」が付くので、取り除く
+        if self.is_extension and name.endswith(")") and " (" in name:
+            name = name[: name.rfind(" (")]
 
         text += f"Name: {name}\nDeveloper: {developers}\n"
 

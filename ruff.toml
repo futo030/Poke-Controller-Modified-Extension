@@ -1,0 +1,16 @@
+# 検査(ruff check)と整形(ruff format)の設定
+#   検査: python -m ruff check
+#   整形: python -m ruff format ファイル名   (全体を一度に整形し直すことはしない)
+target-version = "py312"
+line-length = 120
+# スクリプト(コマンド)を置く場所は対象にしない(サンプルは、書き方の例として import などを残している)
+extend-exclude = ["SerialController/Commands/PythonCommands"]
+
+[lint]
+# 文法の誤り、未定義の名前、使っていない import など
+select = ["E4", "E7", "E9", "F"]
+
+[lint.per-file-ignores]
+# パスを追加してから import するため、import が先頭に並ばない
+"SerialController/Window.py" = ["E402", "F405"]
+"SerialController/Commands/PythonCommandBase.py" = ["E402"]

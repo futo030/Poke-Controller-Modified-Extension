@@ -1,0 +1,71 @@
+# push と Pull Request のたびに、検査(ruff。設定は ruff.toml)と、SerialController/tests のテストを実行する
+# (カメラ・シリアル・コントローラーをつながずに実行できるテストのみ)
+name: tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unittest:
+    # msvcrt・pythonnet など、Windows 用の部品を使うため
+    runs-on: windows-latest
+    timeout-minutes: 20
+    env:
+      # 日本語の出力で、文字コードのエラーにならないようにする
+      PYTHONUTF8: "1"
+      PYTHONIOENCODING: utf-8
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-web.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt -r requirements-web.txt
+
+      - name: Check (ruff)
+        run: |
+          python -m pip install ruff
+          python -m ruff check
+
+      - name: Run tests
+        working-directory: SerialController
+        run: python -m unittest discover -s tests -v
+
+  uv-environment:
+    # uv の環境(uv.lock のとおりの Python とライブラリ)でも、同じテストを実行する
+    runs-on: windows-latest
+    timeout-minutes: 20
+    env:
+      PYTHONUTF8: "1"
+      PYTHONIOENCODING: utf-8
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install dependencies (uv.lock)
+        # --locked: uv.lock が pyproject.toml と食い違っていたら、失敗にする
+        run: uv sync --locked
+
+      - name: Run tests
+        working-directory: SerialController
+        run: uv run --no-sync python -m unittest discover -s tests -v

@@ -9,11 +9,22 @@ import io
 import os
 from PIL import Image
 from logging import getLogger, DEBUG, NullHandler
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import numpy as np
+
+# ロガーの設定は1回だけ行う
+# (インスタンスを作るたびにaddHandlerすると、ハンドラが増え続けてメモリを使い、ログの出力も遅くなる)
+_logger = getLogger(__name__)
+_logger.addHandler(NullHandler())
+_logger.setLevel(DEBUG)
+_logger.propagate = True
 
 
-def convert_bgr_to_bytes(image_bgr):
+def convert_bgr_to_bytes(image_bgr: np.ndarray) -> bytes:
     """
-    BGRの画像をbyte形式に変換する
+    BGRの画像をbyte形式(PNG のデータ)に変換する
     """
     image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
     image = Image.fromarray(image_rgb)
@@ -24,13 +35,20 @@ def convert_bgr_to_bytes(image_bgr):
 
 
 class Line_Notify:
+    """
+    LINE Notify への通知(テキスト・画像)。
+    LINE_TOKEN_PATH: トークンの設定ファイルの場所(プロファイルを切り替えるときに、クラスの値を書き換える)
+    """
+
     LINE_TOKEN_PATH = os.path.join(os.path.dirname(__file__), "profiles", "default", "line_token.ini")
 
-    def __init__(self, token_name="token"):
-        self._logger = getLogger(__name__)
-        self._logger.addHandler(NullHandler())
-        self._logger.setLevel(DEBUG)
-        self._logger.propagate = True
+    def __init__(self, token_name: str = "token"):
+        """
+        設定ファイルの [LINE] にあるトークンをすべて読み、それぞれが有効かを LINE に問い合わせる(通信する)。
+        token_name: 使っていない(以前の呼び出し方との互換のために残している)
+        設定ファイルに [LINE] が無い場合は KeyError、通信できない場合は requests の例外
+        """
+        self._logger = _logger
 
         self.res = None
         self.token_file = configparser.ConfigParser(comment_prefixes="#", allow_no_value=True)
@@ -40,10 +58,12 @@ class Line_Notify:
         # self.line_notify_token = self.token_file['LINE'][token_name]
         self.headers = [{"Authorization": f"Bearer {token}"} for key, token in self.token_list.items()]
         self.res = [requests.get("https://notify-api.line.me/api/status", headers=head) for head in self.headers]
+        # 確認の応答は、別にも持っておく(self.res は、send_message が送信の応答で置き換える)
+        self._check_res = self.res
         self.status = [responses.status_code for responses in self.res]
         self.chk_token_json = [responses.json() for responses in self.res]
 
-    def open_file_with_utf8(self):
+    def open_file_with_utf8(self) -> None:
         """
         utf-8 のファイルを BOM ありかどうかを自動判定して読み込む
         (ファイルがない場合は空のファイルを作成する)
@@ -66,14 +86,18 @@ class Line_Notify:
             os.chmod(path=self.LINE_TOKEN_PATH, mode=0o777)
             self._logger.debug("Generate token file")
 
-    def is_utf8_file_with_bom(self, filename):
+    def is_utf8_file_with_bom(self, filename: str) -> bool:
         """
-        utf-8 ファイルが BOM ありかどうかを判定する
+        utf-8 ファイルが BOM ありかどうかを判定する(空のファイルの場合は False)
         """
-        line_first = open(filename, encoding="utf-8").readline()
-        return line_first[0] == "\ufeff"
+        with open(filename, encoding="utf-8") as file:
+            return file.readline().startswith("\ufeff")
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        トークンの確認の結果の文(最初に 401 か 200 だったトークンの結果)。
+        どのトークンも 401 / 200 でない場合(トークンが無い、ほかの状態が返ったなど)は、確認できなかった旨の文
+        """
         for stat in self.status:
             if stat == 401:
                 self._logger.error("Invalid token")
@@ -81,12 +105,15 @@ class Line_Notify:
             elif stat == 200:
                 self._logger.info("Valid token")
                 return "LINE-Token Check OK!"
+        self._logger.warning(f"Token check was not confirmed: {self.status}")
+        return "LINE Token Check: not confirmed."
 
-    def send_message(self, notification_message, image=None, token="token"):
+    def send_message(self, notification_message: str, image: np.ndarray | None = None, token: str = "token") -> None:
         """
         LINEにテキスト/画像を通知する
         imageが設定されていなければテキストのみ、設定されていればテキストと画像を通知する
         imageはBGRを想定する
+        token: 使うトークンの、設定ファイルでの名前(無い名前の場合は、メッセージを表示するだけ)
         """
         line_notify_api = "https://notify-api.line.me/api/notify"
         try:
@@ -118,27 +145,33 @@ class Line_Notify:
             print("token名が間違っています")
             self._logger.error("Using the wrong token")
 
-    def getRateLimit(self):
+    def getRateLimit(self) -> None:
+        """
+        トークンごとの、送信できる回数の上限・残り・リセットの時刻(日本時間)を表示する。
+        作ったときの、確認の応答を使う(send_message の後でも使える)。応答に情報が無い場合は、ログに残すだけ
+        """
         try:
+            # self.res は、send_message の後は送信の応答になるので、作ったときの確認の応答を見る
+            responses = self._check_res
             for i in range(self.token_num):
                 print(f"For: {list(self.token_list.keys())[i]}")
-                print("X-RateLimit-Limit: " + self.res[i].headers["X-RateLimit-Limit"])
-                print("X-RateLimit-ImageLimit: " + self.res[i].headers["X-RateLimit-ImageLimit"])
-                print("X-RateLimit-Remaining: " + self.res[i].headers["X-RateLimit-Remaining"])
-                print("X-RateLimit-ImageRemaining: " + self.res[i].headers["X-RateLimit-ImageRemaining"])
+                print("X-RateLimit-Limit: " + responses[i].headers["X-RateLimit-Limit"])
+                print("X-RateLimit-ImageLimit: " + responses[i].headers["X-RateLimit-ImageLimit"])
+                print("X-RateLimit-Remaining: " + responses[i].headers["X-RateLimit-Remaining"])
+                print("X-RateLimit-ImageRemaining: " + responses[i].headers["X-RateLimit-ImageRemaining"])
                 import datetime
 
                 dt = datetime.datetime.fromtimestamp(
-                    int(self.res[i].headers["X-RateLimit-Reset"]), datetime.timezone(datetime.timedelta(hours=9))
+                    int(responses[i].headers["X-RateLimit-Reset"]), datetime.timezone(datetime.timedelta(hours=9))
                 )
                 print("Reset time:", dt, "\n")
 
-                self._logger.info(f"LINE API - Limit: {self.res[i].headers['X-RateLimit-Limit']}")
-                self._logger.info(f"LINE API - Remaining: {self.res[i].headers['X-RateLimit-Remaining']}")
-                self._logger.info(f"LINE API - ImageLimit: {self.res[i].headers['X-RateLimit-Limit']}")
-                self._logger.info(f"LINE API - ImageRemaining: {self.res[i].headers['X-RateLimit-ImageRemaining']}")
+                self._logger.info(f"LINE API - Limit: {responses[i].headers['X-RateLimit-Limit']}")
+                self._logger.info(f"LINE API - Remaining: {responses[i].headers['X-RateLimit-Remaining']}")
+                self._logger.info(f"LINE API - ImageLimit: {responses[i].headers['X-RateLimit-ImageLimit']}")
+                self._logger.info(f"LINE API - ImageRemaining: {responses[i].headers['X-RateLimit-ImageRemaining']}")
                 self._logger.info(f"Reset time: {dt}")
-        except AttributeError as e:
+        except (AttributeError, TypeError, IndexError) as e:
             self._logger.error(e)
             pass
         except KeyError as e:

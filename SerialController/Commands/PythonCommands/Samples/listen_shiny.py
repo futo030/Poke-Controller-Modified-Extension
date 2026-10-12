@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from Commands.Keys import Button
 from Commands.PythonCommandBase import PythonCommand
 
 try:
@@ -9,7 +8,7 @@ try:
 except ImportError:
     print("PyAudio is not installed.")
     pass
-except:
+except Exception:
     pass
 
 import numpy as np
@@ -54,7 +53,7 @@ class ListenShiny(PythonCommand):
 
         CHUNK = 1024
         RATE = 44100
-        l = 1e7  # 閾値．入力の音量によって変動します．
+        threshold = 1e7  # 閾値．入力の音量によって変動します．
         sound_count = 0
 
         data1 = []
@@ -114,7 +113,7 @@ class ListenShiny(PythonCommand):
                     data3100 = fft_abs[np.where((freqList < 3200) & (freqList > 3000))]  # 3100Hz付近の周波数成分
                     data4200 = fft_abs[np.where((freqList < 4400) & (freqList > 4150))]  # 4200Hz付近の周波数成分
 
-                    if (data3100.max() > 0.4 * l) and (data4200.max() > 1 * l):
+                    if (data3100.max() > 0.4 * threshold) and (data4200.max() > 1 * threshold):
                         # 3100Hz付近と4200Hz付近の強度が一定以上あったとき、色違いと判断
                         # 4200Hz付近のほうが強いので閾値に0.4掛けしています．
                         # スペクトラムを見る限り3100Hzの倍音もなっているような気がするので，それも追加で認識してもよいのかも

@@ -1,0 +1,31 @@
+# 改行コードの扱い
+#   文章のファイルは、リポジトリの中では LF にそろえる(手元では、Git の設定に従って変換される)
+* text=auto
+
+*.py   text
+*.md   text
+*.txt  text
+*.ini  text
+*.json text
+*.csv  text
+*.yml  text
+*.toml text
+*.html text
+*.css  text
+*.js   text
+
+# Windows のバッチファイルは、CRLF でないと正しく動かない
+*.bat  text eol=crlf
+# PowerShell のスクリプトも CRLF(日本語を含むので、先頭に BOM を付けて保存する)
+*.ps1  text eol=crlf
+
+# 画像など(変換しない)
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.dll  binary
+
+# 同梱しているライブラリ(配布元のファイルのまま置く)
+DirectShowLib/** -text

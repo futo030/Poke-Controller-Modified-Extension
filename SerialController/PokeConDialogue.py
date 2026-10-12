@@ -4,16 +4,27 @@ from __future__ import annotations
 
 import tkinter as tk
 import tkinter.ttk as ttk
-import json
-import os
-import glob
 # from logging import getLogger, DEBUG, NullHandlerxx
 
 
 class PokeConDialogue(object):
-    def __init__(self, parent, title: str, message: int | str | list, desc: str = None, mode: int = 0, pos: int = 2):
+    """
+    コマンドやメニューから開く、入力用のダイアログ(作ると表示され、閉じられるまで待つ。結果は ret_value で受け取る)
+    """
+
+    def __init__(
+        self,
+        parent: tk.Toplevel,
+        title: str,
+        message: int | str | list,
+        desc: str | None = None,
+        mode: int = 0,
+        pos: int = 2,
+    ):
         """
         pokecon用ダイアログ生成関数(注意:mode=0と1でmessageの取り扱いが大きく異なる。)
+        parent | tk.Toplevel: ダイアログにするウィンドウ(呼び出し側で作って渡す。親のウィンドウの中央に表示する)
+        desc | str: ダイアログの上部に表示する説明(Noneのとき、タイトルを表示する)
         mode | int: 0のときEntryのみ、1のとき6種類のwidgetに対応
         pos | int: OK/Cancelの位置(1のときTOP、2のときBOTTOM、3のときBOTH)
         title | str: タイトル
@@ -91,7 +102,11 @@ class PokeConDialogue(object):
         self.main_frame.pack()
         self.message_dialogue.master.wait_window(self.message_dialogue)
 
-    def mode0(self, message: list | str):
+    def mode0(self, message: int | str | list) -> None:
+        """
+        mode=0 の入力欄を作る: 項目ごとに、ラベルと Entry を1行ずつ並べる
+        message: 項目名(ラベルの文字)、またはそのリスト
+        """
         if type(message) is not list:
             message = [message]
         n = len(message)
@@ -103,7 +118,11 @@ class PokeConDialogue(object):
             label.grid(column=0, row=i, sticky="nsew", padx=3, pady=3)
             entry.grid(column=1, row=i, sticky="nsew", padx=3, pady=3)
 
-    def mode1(self, dialogue_list: list):
+    def mode1(self, dialogue_list: list) -> None:
+        """
+        mode=1 の入力欄を作る: widgetごとの設定のリストから、Check / Combo / Entry / Radio / Spin / Scale を並べる
+        dialogue_list: widgetごとの設定のリスト(__init__ の message を参照。["Next"] を入れると、次の列に移る)
+        """
         n = len(dialogue_list)
         frame = []
 
@@ -111,7 +130,8 @@ class PokeConDialogue(object):
         scale_index_list = []  # scaleが何番目のwidgetなのかを格納するリスト
         scale_digit_list = []  # scaleの有効桁数を格納するリスト
 
-        def change_scale_value(event=None):  # scaleのバーを動かしたときにlabelの値を変更するための関数
+        def change_scale_value(event: str | None = None) -> None:  # scaleのバーを動かしたときにlabelの値を変更するための関数
+            """すべての Scale の値を、有効桁数で丸めて、横のラベルに表示する。event: 使わない(Scale から渡される値)"""
             for i, (index, fmt) in enumerate(zip(scale_index_list, scale_digit_list)):
                 if fmt != 0:
                     val = round(self.dialogue_ls[dialogue_list[index][1]].get(), fmt)
@@ -217,6 +237,11 @@ class PokeConDialogue(object):
                     pass
 
     def ret_value(self, need: type) -> list | dict | bool:
+        """
+        ダイアログの入力結果を返す
+        need: 戻り値の型(list: 値を並べたリスト / dict: 項目名 -> 値 の辞書。それ以外は、メッセージを表示して list)
+        戻り値: OK で閉じた場合は入力結果。Cancel や × ボタンで閉じた場合は False
+        """
         if self.isOK:
             if need is dict:  # needは型なのでisinstanceは使えない
                 return {k: v.get() for k, v in self.dialogue_ls.items()}
@@ -228,96 +253,29 @@ class PokeConDialogue(object):
         else:
             return False
 
-    def close_window(self):
+    def close_window(self) -> None:
+        """ウィンドウの × ボタン: 入力を使わずに閉じる"""
         self.message_dialogue.destroy()
         self.isOK = False
 
-    def ok_command(self):
+    def ok_command(self) -> None:
+        """OK ボタン: 入力された値を覚えて閉じる"""
         self._ls = [v.get() for k, v in self.dialogue_ls.items()]
         self.message_dialogue.destroy()
         self.isOK = True
 
-    def cancel_command(self):
+    def cancel_command(self) -> None:
+        """Cancel ボタン: 入力を使わずに閉じる"""
         self.message_dialogue.destroy()
         self.isOK = False
 
 
-def check_widget_name(dialogue_list: list, except_name: list = []) -> bool:
-    """
-    ウィジェットに同一名称がないかを確認
-    """
-    input_name = [setting[1] for setting in dialogue_list if len(setting) > 1] + except_name
-    checked_name = []
-    output_name = [name for name in input_name if name not in checked_name and not checked_name.append(name)]
-
-    return len(input_name) == len(output_name)
-
-
-def get_setting(filename: str) -> dict:
-    """
-    保存した設定値を読み込む
-    """
-    try:
-        with open(filename, encoding="utf-8") as f:
-            file = json.load(f)
-            return file
-    except Exception:
-        return None
-
-
-def save_setting(filename: str, settings: dict):
-    """
-    設定値を保存する
-    """
-    with open(filename, "w", encoding="utf-8") as f:
-        json.dump(settings, f, indent=4, ensure_ascii=False)
-
-
-def generate_new_dialogue_list(dialogue_list: list, filename: str) -> list:
-    settings = get_setting(filename)
-    if not settings:
-        return dialogue_list
-    else:
-        new_dialogue_list = []
-        for setting in dialogue_list:
-            if len(setting) < 2:
-                pass
-            else:
-                try:
-                    setting[-1] = settings[setting[1]]
-                except Exception:
-                    pass
-            new_dialogue_list.append(setting)
-    return new_dialogue_list
-
-
-def save_dialogue_settings(new_dialogue_list: list, ret: list | dict, filename: str):
-    try:
-        settings = {}
-        if isinstance(ret, list):
-            cnt = 0
-            for setting in new_dialogue_list:
-                if len(setting) < 2:
-                    pass
-                else:
-                    settings[setting[1]] = ret[cnt]
-                    cnt += 1
-            save_setting(filename, settings)
-        else:
-            save_setting(filename, ret)
-    except Exception:
-        print("Error: Configuration dump failed.")
-
-
-def get_settings_list(dirname: str) -> list:
-    if os.path.isdir(dirname):
-        pass
-    else:
-        os.makedirs(dirname)
-    filename = os.path.join(dirname, "**", "*.json")
-    settings_list = glob.glob(filename, recursive=True)
-
-    len_pass = len(dirname) + 1
-    settings_name_list = [file[len_pass:-5] for file in settings_list if file[len_pass] != "_"]
-
-    return settings_name_list
+# 画面に依存しない関数は services/dialogue_store.py にある(これまでの import のために、ここからも使えるようにする)
+from services.dialogue_store import (  # noqa: E402,F401
+    check_widget_name,
+    get_setting,
+    save_setting,
+    generate_new_dialogue_list,
+    save_dialogue_settings,
+    get_settings_list,
+)

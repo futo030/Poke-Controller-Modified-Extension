@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from Commands.PythonCommandBase import ImageProcPythonCommand
-import tkinter.messagebox as tkmsg
 import os
 
 

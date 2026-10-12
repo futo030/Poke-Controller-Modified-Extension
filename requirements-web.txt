@@ -1,0 +1,9 @@
+#
+# Web ブラウザ版の画面(python Window.py --ui web)を使う場合に、追加で必要なもの
+# (これまでのウィンドウの画面だけを使う場合は、不要)
+#
+#   pip install -r requirements-web.txt
+#
+fastapi
+uvicorn
+websockets
