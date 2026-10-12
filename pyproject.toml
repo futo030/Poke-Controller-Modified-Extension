@@ -1,0 +1,40 @@
+# uv で環境(.venv)を作るための設定
+#   環境を作る: uv sync
+#   ライブラリの版を新しくする(Release の前に、開発者が行う): uv lock --upgrade
+# 0.2.x の間は、uv を使わない環境のために requirements.txt と requirements-web.txt も残す
+# (中身は、tests/test_packaging.py がそろっていることを確かめる)
+[project]
+name = "poke-controller-modified-extension"
+version = "0.2.0"
+description = "Game console automation support software based on Poke-Controller Modified"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "opencv-python",
+    "pynput>=1.7.7",
+    "pyserial",
+    "Pillow",
+    "pythonnet",
+    "pygubu",
+    "requests",
+    "pandas",
+    "numpy",
+    "scipy",
+    "pygame",
+    "paho-mqtt",
+    "gitpython",
+    "plyer",
+    "sounddevice",
+    # Web ブラウザ版の画面(python Window.py --ui web)
+    "fastapi",
+    "uvicorn",
+    "websockets",
+]
+
+[tool.uv]
+# インストールするパッケージではない(フォルダーのまま動かす)
+package = false
+# Python は、uv が取得したものを使う(PC に入っている Python は使わない。全員が同じ Python で動くようにする)
+python-preference = "only-managed"
+# Python 3.13.16 を取得できる版
+required-version = ">=0.12.22"

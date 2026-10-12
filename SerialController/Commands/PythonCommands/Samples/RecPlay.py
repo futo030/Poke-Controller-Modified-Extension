@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from Commands.Keys import Direction, Stick
-from Commands.Keys import Button
 from Commands.PythonCommandBase import PythonCommand
 from tkinter import filedialog
 import time

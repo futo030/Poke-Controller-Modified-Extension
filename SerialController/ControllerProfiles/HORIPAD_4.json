@@ -1,0 +1,39 @@
+{
+  "name": "HORIPAD 4",
+  "match": [
+    "HORIPAD 4"
+  ],
+  "buttons": {
+    "Y": 2,
+    "B": 0,
+    "A": 1,
+    "X": 3,
+    "L": 9,
+    "R": 10,
+    "ZL": {
+      "axis": 4,
+      "threshold": -0.5
+    },
+    "ZR": {
+      "axis": 5,
+      "threshold": -0.5
+    },
+    "LCLICK": 7,
+    "RCLICK": 8,
+    "HOME": 5
+  },
+  "hat": {
+    "type": "buttons",
+    "up": 11,
+    "right": 14,
+    "down": 12,
+    "left": 13
+  },
+  "sticks": {
+    "lx": 0,
+    "ly": 1,
+    "rx": 2,
+    "ry": 3
+  },
+  "deadzone": 0.35
+}

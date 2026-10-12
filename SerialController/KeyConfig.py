@@ -5,20 +5,85 @@ from __future__ import annotations
 import configparser
 import os
 import tkinter as tk
+import tkinter.messagebox as tkmsg
 import tkinter.ttk as ttk
 from logging import getLogger, DEBUG, NullHandler
+from typing import TYPE_CHECKING, Callable
 
 from pynput.keyboard import Listener
 
+import ControllerColors
+import KeyMap
+import Profile
+import Theme
+from ControllerLayouts import Compact3DSGUI, CompactDSGUI, CompactGameCubeGUI, CompactSwitchJoyConGUI
+
+if TYPE_CHECKING:
+    from pynput.keyboard import Key, KeyCode
+
+LABEL_FONT = ("Yu Gothic UI", 9, "bold")
+# ゲーム機ごとの、図に使うレイアウトと、色(コントローラー設定)の種類。SwitchはJoy-Conの色を使う
+CONSOLE_LAYOUTS = {
+    KeyMap.SWITCH: (CompactSwitchJoyConGUI, ControllerColors.SWITCH_JOYCON),
+    KeyMap.N3DS: (Compact3DSGUI, ControllerColors.N3DS),
+    KeyMap.NDS: (CompactDSGUI, ControllerColors.NDS),
+    KeyMap.GAMECUBE: (CompactGameCubeGUI, ControllerColors.GAMECUBE),
+}
+
+
+def _addKeyConfigStyleHook() -> None:
+    """
+    この画面のフレームだけを、テーマの入力欄の色(デフォルトでは白)にするスタイルを作る(最初に開いたときに1回登録する)
+    ("TFrame" そのものを変えると、メイン画面を含むすべてのフレームの背景が変わる)
+    """
+    global _style_hook_added
+    if not _style_hook_added:
+        _style_hook_added = True
+        Theme.add_style_hook(lambda style: style.configure("KeyConfig.TFrame", background=Theme.color("field")))
+
+
+_style_hook_added = False
+
+
+class _NullKey:
+    """
+    図のコントローラー用: 押しても何も送らない入力
+    """
+
+    def __getattr__(self, name: str) -> Callable[..., None]:
+        """
+        どの名前のメソッドを呼ばれても、何もしない関数を返す
+        """
+        return lambda *args, **kwargs: None
+
 
 class PokeKeycon:
+    """
+    キーコンフィグの画面: キーボードのキーとコントローラーのボタンの対応を、ゲーム機ごとに設定する
+    入力欄を選んでキーを押すと、そのキーが欄に入る。OKで保存し、キャンセルでは何も変えない
+    """
+
     SETTING_PATH = os.path.join(os.path.dirname(__file__), "profiles", "default", "settings.ini")
 
-    def __init__(self, master=None, **kw):
+    def __init__(
+        self,
+        master: tk.Misc | None = None,
+        initial_console: str | None = None,
+        on_saved: Callable[[], None] | None = None,
+        **kw: object,
+    ):
+        """
+        master: 親のウィンドウ(メインウィンドウ)
+        initial_console: 最初に表示するタブのゲーム機
+        on_saved: OKで設定を保存した後に呼ぶ関数(キーボード操作に、新しい対応をすぐ使わせるため)
+        kw: 使っていない(以前の呼び出し方との互換のために受け取る)
+        """
         self.master = master
+        self.on_saved = on_saved
         self.kc = tk.Toplevel(master)
         self.kc.title("Key Config")
         self.listener = None
+        self._close_handler = None
         self.setting = configparser.ConfigParser()
         self.setting.optionxform = str
 
@@ -30,204 +95,61 @@ class PokeKeycon:
         self.kc.resizable(False, False)
 
         # Initialize style
-        s = ttk.Style()
-        # Create style used by default for all Frames
-        s.configure("TFrame", background="white")
-        s.configure("Frame1.TFrame", background="#00c3e3")
-        s.configure("Frame2.TFrame", background="#ff4554")
+        # この画面のフレームだけを、テーマの入力欄の色(デフォルトでは白)にする
+        _addKeyConfigStyleHook()
 
-        # ttk.Frame.__init__(self, master, **kw)
         # build ui
-        self.key_config_frame = ttk.Frame(self.kc)
-        self.frame_2 = ttk.Frame(self.key_config_frame, style="Frame1.TFrame")
+        self.key_config_frame = ttk.Frame(self.kc, style="KeyConfig.TFrame")
+        # ゲーム機ごとのタブ。vars: ゲーム機 -> {ボタンの名前: 入力欄の変数}
+        self.nb = ttk.Notebook(self.key_config_frame)
+        self.vars = {}
+        self.entries = {}
+        self.tab_frames = {}
+        self.previews = []
+        for console in KeyMap.CONSOLES:
+            tab = ttk.Frame(self.nb, style="KeyConfig.TFrame")
+            # 上: コントローラーの図(コントローラー設定の色。HOLDボタンは置かない。押しても何も送らない)
+            layout_class, color_type = CONSOLE_LAYOUTS[console]
+            colors = ControllerColors.get_colors(color_type)
+            preview_f = tk.Frame(tab)
+            self.previews.append(
+                layout_class(self.kc, None, parent=preview_f, key=_NullKey(), colors=colors, hold_button=False)
+            )
+            preview_f.grid(column="0", row="0", padx="8", pady=(8, 6))
+            # 下: 白い背景の表。左の列と右の列を、項目の左の印の色(本体の色)で示す
+            table = tk.Frame(tab, bg=Theme.color("field"))
+            self.vars[console] = {}
+            side_colors = (colors["left"], colors["right"]) if "left" in colors else (colors["body"],) * 2
+            for side, (buttons, color) in enumerate(zip(KeyMap.BUTTONS[console], side_colors)):
+                for row, (text, name) in enumerate(buttons):
+                    cell = tk.Frame(table, bg=Theme.color("field"))
+                    tk.Label(cell, bg=color, width=1).pack(side="left", fill="y", padx=(0, 5))
+                    tk.Label(cell, text=text, bg=Theme.color("field"), font=LABEL_FONT, width=10, anchor="w").pack(side="left")
+                    cell.grid(column=side * 2, row=row, padx=(14 if side else 0, 6), pady="2", sticky="w")
+                    var = tk.StringVar()
+                    entry = ttk.Entry(table, width="12")
+                    entry.configure(state="readonly", textvariable=var)
+                    entry.grid(column=side * 2 + 1, row=row, pady="2")
+                    entry.bind("<FocusIn>", lambda event, var=var: self.onFocusInController(var))
+                    entry.bind("<FocusOut>", self.onFocusOutController)
+                    self.vars[console][name] = var
+                    self.entries[(console, name)] = entry
+            table.grid(column="0", row="1", padx="10", pady=(0, 8), sticky="n")
+            self.nb.add(tab, text=console)
+            self.tab_frames[console] = tab
+        self.nb.grid(column="0", row="0", sticky="nsew")
+        if initial_console in self.tab_frames:
+            self.nb.select(self.tab_frames[initial_console])
 
-        self.label_ZL = ttk.Label(self.frame_2)
-        self.label_ZL.configure(padding="5", text="ZL", background="#00c3e3", font="{游ゴシック} 12 {bold}")
-        self.label_ZL.grid(sticky="e")
-        self.entry_ZL = ttk.Entry(self.frame_2)
-        self.ZL = tk.StringVar()
-        self.entry_ZL.configure(state="readonly", textvariable=self.ZL)
-        self.entry_ZL.grid(column="1", padx="5", pady="5", row="0")
+        self.frame_button = ttk.Frame(self.key_config_frame, style="KeyConfig.TFrame")
+        self.ok_button = ttk.Button(self.frame_button)
+        self.ok_button.configure(text="OK", command=self.ok)
+        self.ok_button.grid(column="0", padx=(10, 5), pady="5", row="0", sticky="e")
+        self.cancel_button = ttk.Button(self.frame_button)
+        self.cancel_button.configure(text="キャンセル", command=self.cancel)
+        self.cancel_button.grid(column="1", padx=(0, 10), pady="5", row="0", sticky="e")
+        self.frame_button.grid(column="0", row="1", sticky="e")
 
-        self.label_L = ttk.Label(self.frame_2)
-        self.label_L.configure(padding="5", text="L", background="#00c3e3", font="{游ゴシック} 12 {bold}")
-        self.label_L.grid(row="1", sticky="e")
-        self.entry_L = ttk.Entry(self.frame_2)
-        self.L = tk.StringVar()
-        self.entry_L.configure(state="readonly", textvariable=self.L)
-        self.entry_L.grid(column="1", padx="5", pady="5", row="1")
-
-        self.label_MINUS = ttk.Label(self.frame_2)
-        self.label_MINUS.configure(padding="5", text="MINUS", background="#00c3e3", font="{游ゴシック} 12 {bold}")
-        self.label_MINUS.grid(row="2", sticky="e")
-        self.entry_MINUS = ttk.Entry(self.frame_2)
-        self.MINUS = tk.StringVar()
-        self.entry_MINUS.configure(state="readonly", textvariable=self.MINUS)
-        self.entry_MINUS.grid(column="1", padx="5", pady="5", row="2")
-
-        self.label_HAT_UP = ttk.Label(self.frame_2)
-        self.label_HAT_UP.configure(padding="5", text="HAT UP", background="#00c3e3", font="{游ゴシック} 12 {bold}")
-        self.label_HAT_UP.grid(row="3", sticky="e")
-        self.entry_HAT_UP = ttk.Entry(self.frame_2)
-        self.HAT_UP = tk.StringVar()
-        self.entry_HAT_UP.configure(state="readonly", textvariable=self.HAT_UP)
-        self.entry_HAT_UP.grid(column="1", padx="5", pady="5", row="3")
-
-        self.label__HAT_LEFT = ttk.Label(self.frame_2)
-        self.label__HAT_LEFT.configure(
-            padding="5", text="HAT LEFT", background="#00c3e3", font="{游ゴシック} 12 {bold}"
-        )
-        self.label__HAT_LEFT.grid(row="4", sticky="e")
-        self.entry_HAT_LEFT = ttk.Entry(self.frame_2)
-        self.HAT_LEFT = tk.StringVar()
-        self.entry_HAT_LEFT.configure(state="readonly", textvariable=self.HAT_LEFT)
-        self.entry_HAT_LEFT.grid(column="1", padx="5", pady="5", row="4")
-
-        self.label_HAT_RIGHT = ttk.Label(self.frame_2)
-        self.label_HAT_RIGHT.configure(
-            padding="5", text="HAT RIGHT", background="#00c3e3", font="{游ゴシック} 12 {bold}"
-        )
-        self.label_HAT_RIGHT.grid(row="5", sticky="e")
-        self.entry_HAT_RIGHT = ttk.Entry(self.frame_2)
-        self.HAT_RIGHT = tk.StringVar()
-        self.entry_HAT_RIGHT.configure(state="readonly", textvariable=self.HAT_RIGHT)
-        self.entry_HAT_RIGHT.grid(column="1", padx="5", pady="5", row="5")
-
-        self.label_HAT_DOWN = ttk.Label(self.frame_2)
-        self.label_HAT_DOWN.configure(padding="5", text="HAT DOWN", background="#00c3e3", font="{游ゴシック} 12 {bold}")
-        self.label_HAT_DOWN.grid(row="6", sticky="e")
-        self.entry_HAT_DOWN = ttk.Entry(self.frame_2)
-        self.HAT_DOWN = tk.StringVar()
-        self.entry_HAT_DOWN.configure(state="readonly", textvariable=self.HAT_DOWN)
-        self.entry_HAT_DOWN.grid(column="1", padx="5", pady="5", row="6")
-
-        self.label_CAPTURE = ttk.Label(self.frame_2)
-        self.label_CAPTURE.configure(padding="5", text="CAPTURE", background="#00c3e3", font="{游ゴシック} 12 {bold}")
-        self.label_CAPTURE.grid(row="7", sticky="e")
-        self.entry_CAPTURE = ttk.Entry(self.frame_2)
-        self.CAPTURE = tk.StringVar()
-        self.entry_CAPTURE.configure(state="readonly", textvariable=self.CAPTURE)
-        self.entry_CAPTURE.grid(column="1", padx="5", pady="5", row="7")
-
-        self.label_LCLICK = ttk.Label(self.frame_2)
-        self.label_LCLICK.configure(padding="5", text="L CLICK", background="#00c3e3", font="{游ゴシック} 12 {bold}")
-        self.label_LCLICK.grid(row="8", sticky="e")
-        self.entry_LCLICK = ttk.Entry(self.frame_2)
-        self.LCLICK = tk.StringVar()
-        self.entry_LCLICK.configure(state="readonly", textvariable=self.LCLICK)
-        self.entry_LCLICK.grid(column="1", padx="5", pady="5", row="8")
-
-        self.frame_2.configure(height="200", padding="10", relief="groove", width="200")
-        self.frame_2.grid(column="0", row="1", sticky="nsew")
-        self.frame_2.rowconfigure("1", pad="5")
-        self.frame_2.columnconfigure("0", pad="5")
-
-        self.frame_2_3 = ttk.Frame(self.key_config_frame, style="Frame2.TFrame")
-
-        self.label_ZR = ttk.Label(self.frame_2_3)
-        self.label_ZR.configure(
-            padding="5", text="ZR", background="#ff4554", foreground="#ffffff", font="{游ゴシック} 12 {bold}"
-        )
-        self.label_ZR.grid(row="0", sticky="e")
-        self.entry_ZR = ttk.Entry(self.frame_2_3)
-        self.ZR = tk.StringVar()
-        self.entry_ZR.configure(state="readonly", textvariable=self.ZR)
-        self.entry_ZR.grid(column="1", padx="5", pady="5", row="0")
-
-        self.label_R = ttk.Label(self.frame_2_3)
-        self.label_R.configure(
-            padding="5", text="R", background="#ff4554", foreground="#ffffff", font="{游ゴシック} 12 {bold}"
-        )
-        self.label_R.grid(row="1", sticky="e")
-        self.entry_R = ttk.Entry(self.frame_2_3)
-        self.R = tk.StringVar()
-        self.entry_R.configure(state="readonly", textvariable=self.R)
-        self.entry_R.grid(column="1", padx="5", pady="5", row="1")
-
-        self.label_PLUS = ttk.Label(self.frame_2_3)
-        self.label_PLUS.configure(
-            padding="5", text="PLUS", background="#ff4554", foreground="#ffffff", font="{游ゴシック} 12 {bold}"
-        )
-        self.label_PLUS.grid(row="2", sticky="e")
-        self.entry_PLUS = ttk.Entry(self.frame_2_3)
-        self.PLUS = tk.StringVar()
-        self.entry_PLUS.configure(state="readonly", textvariable=self.PLUS)
-        self.entry_PLUS.grid(column="1", padx="5", pady="5", row="2")
-
-        self.label_A = ttk.Label(self.frame_2_3)
-        self.label_A.configure(
-            padding="5", text="A", background="#ff4554", foreground="#ffffff", font="{游ゴシック} 12 {bold}"
-        )
-        self.label_A.grid(row="3", sticky="e")
-        self.entry_A = ttk.Entry(self.frame_2_3)
-        self.A = tk.StringVar()
-        self.entry_A.configure(state="readonly", textvariable=self.A)
-        self.entry_A.grid(column="1", padx="5", pady="5", row="3")
-
-        self.label__B = ttk.Label(self.frame_2_3)
-        self.label__B.configure(
-            padding="5", text="B", background="#ff4554", foreground="#ffffff", font="{游ゴシック} 12 {bold}"
-        )
-        self.label__B.grid(row="4", sticky="e")
-        self.entry_B = ttk.Entry(self.frame_2_3)
-        self.B = tk.StringVar()
-        self.entry_B.configure(state="readonly", textvariable=self.B)
-        self.entry_B.grid(column="1", padx="5", pady="5", row="4")
-
-        self.label_X = ttk.Label(self.frame_2_3)
-        self.label_X.configure(
-            padding="5", text="X", background="#ff4554", foreground="#ffffff", font="{游ゴシック} 12 {bold}"
-        )
-        self.label_X.grid(row="5", sticky="e")
-        self.entry_X = ttk.Entry(self.frame_2_3)
-        self.X = tk.StringVar()
-        self.entry_X.configure(state="readonly", textvariable=self.X)
-        self.entry_X.grid(column="1", padx="5", pady="5", row="5")
-
-        self.label_Y = ttk.Label(self.frame_2_3)
-        self.label_Y.configure(
-            padding="5", text="Y", background="#ff4554", foreground="#ffffff", font="{游ゴシック} 12 {bold}"
-        )
-        self.label_Y.grid(row="6", sticky="e")
-        self.entry_Y = ttk.Entry(self.frame_2_3)
-        self.Y = tk.StringVar()
-        self.entry_Y.configure(state="readonly", textvariable=self.Y)
-        self.entry_Y.grid(column="1", padx="5", pady="5", row="6")
-
-        self.label_HOME = ttk.Label(self.frame_2_3)
-        self.label_HOME.configure(
-            padding="5", text="HOME", background="#ff4554", foreground="#ffffff", font="{游ゴシック} 12 {bold}"
-        )
-        self.label_HOME.grid(row="7", sticky="e")
-        self.entry_HOME = ttk.Entry(self.frame_2_3)
-        self.HOME = tk.StringVar()
-        self.entry_HOME.configure(state="readonly", textvariable=self.HOME)
-        self.entry_HOME.grid(column="1", padx="5", pady="5", row="7")
-
-        self.label_RCLICK = ttk.Label(self.frame_2_3)
-        self.label_RCLICK.configure(
-            padding="5", text="R CLICK", background="#ff4554", foreground="#ffffff", font="{游ゴシック} 12 {bold}"
-        )
-        self.label_RCLICK.grid(row="8", sticky="e")
-        self.entry_RCLICK = ttk.Entry(self.frame_2_3)
-        self.RCLICK = tk.StringVar()
-        self.entry_RCLICK.configure(state="readonly", textvariable=self.RCLICK)
-        self.entry_RCLICK.grid(column="1", padx="5", pady="5", row="8")
-
-        self.frame_2_3.configure(height="200", padding="10", relief="groove", width="200")
-        self.frame_2_3.grid(column="1", row="1", sticky="nsew")
-        self.frame_2_3.rowconfigure("1", pad="5")
-        self.frame_2_3.columnconfigure("1", pad="5")
-
-        self.frame_button = ttk.Frame(self.key_config_frame)
-        self.apply_button = ttk.Button(self.frame_button)
-        self.apply_button.configure(text="適用")
-        self.apply_button.grid(column="0", padx="10", sticky="e")
-        self.apply_button.configure(command=self.apply_setting)
-        self.frame_button.configure(height="200", width="200")
-        self.frame_button.grid(column="1", columnspan="1", row="2", sticky="e")
-
-        self.key_config_frame.configure(height="200", width="200")
         self.key_config_frame.pack(side="top")
 
         # Main widget
@@ -235,151 +157,162 @@ class PokeKeycon:
 
         self.load_config()
 
-        self.entry_ZL.bind("<FocusIn>", lambda x: self.onFocusInController(self.ZL, "Button.ZL"))
-        self.entry_ZL.bind("<FocusOut>", self.onFocusOutController)
-        self.entry_L.bind("<FocusIn>", lambda x: self.onFocusInController(self.L, "Button.L"))
-        self.entry_L.bind("<FocusOut>", self.onFocusOutController)
-        self.entry_LCLICK.bind("<FocusIn>", lambda x: self.onFocusInController(self.LCLICK, "Button.LCLICK"))
-        self.entry_LCLICK.bind("<FocusOut>", self.onFocusOutController)
-        self.entry_ZR.bind("<FocusIn>", lambda x: self.onFocusInController(self.ZR, "Button.ZR"))
-        self.entry_ZR.bind("<FocusOut>", self.onFocusOutController)
-        self.entry_R.bind("<FocusIn>", lambda x: self.onFocusInController(self.R, "Button.R"))
-        self.entry_R.bind("<FocusOut>", self.onFocusOutController)
-        self.entry_RCLICK.bind("<FocusIn>", lambda x: self.onFocusInController(self.RCLICK, "Button.RCLICK"))
-        self.entry_RCLICK.bind("<FocusOut>", self.onFocusOutController)
-        self.entry_MINUS.bind("<FocusIn>", lambda x: self.onFocusInController(self.MINUS, "Button.MINUS"))
-        self.entry_MINUS.bind("<FocusOut>", self.onFocusOutController)
-        self.entry_CAPTURE.bind("<FocusIn>", lambda x: self.onFocusInController(self.CAPTURE, "Button.CAPTURE"))
-        self.entry_CAPTURE.bind("<FocusOut>", self.onFocusOutController)
-        self.entry_A.bind("<FocusIn>", lambda x: self.onFocusInController(self.A, "Button.A"))
-        self.entry_A.bind("<FocusOut>", self.onFocusOutController)
-        self.entry_B.bind("<FocusIn>", lambda x: self.onFocusInController(self.B, "Button.B"))
-        self.entry_B.bind("<FocusOut>", self.onFocusOutController)
-        self.entry_X.bind("<FocusIn>", lambda x: self.onFocusInController(self.X, "Button.X"))
-        self.entry_X.bind("<FocusOut>", self.onFocusOutController)
-        self.entry_Y.bind("<FocusIn>", lambda x: self.onFocusInController(self.Y, "Button.Y"))
-        self.entry_Y.bind("<FocusOut>", self.onFocusOutController)
-        self.entry_PLUS.bind("<FocusIn>", lambda x: self.onFocusInController(self.PLUS, "Button.PLUS"))
-        self.entry_PLUS.bind("<FocusOut>", self.onFocusOutController)
-        self.entry_HOME.bind("<FocusIn>", lambda x: self.onFocusInController(self.HOME, "Button.HOME"))
-        self.entry_HOME.bind("<FocusOut>", self.onFocusOutController)
-
-        self.entry_HAT_UP.bind("<FocusIn>", lambda x: self.onFocusInController(self.HAT_UP, "Hat.TOP"))
-        self.entry_HAT_UP.bind("<FocusOut>", self.onFocusOutController)
-        self.entry_HAT_RIGHT.bind("<FocusIn>", lambda x: self.onFocusInController(self.HAT_RIGHT, "Hat.RIGHT"))
-        self.entry_HAT_RIGHT.bind("<FocusOut>", self.onFocusOutController)
-        self.entry_HAT_DOWN.bind("<FocusIn>", lambda x: self.onFocusInController(self.HAT_DOWN, "Hat.BTM"))
-        self.entry_HAT_DOWN.bind("<FocusOut>", self.onFocusOutController)
-        self.entry_HAT_LEFT.bind("<FocusIn>", lambda x: self.onFocusInController(self.HAT_LEFT, "Hat.LEFT"))
-        self.entry_HAT_LEFT.bind("<FocusOut>", self.onFocusOutController)
-
-    def run(self):
+    def run(self) -> None:
+        """このファイルを直接実行したとき用: 画面を表示して、閉じるまで待つ"""
         self.mainwindow.mainloop()
 
-    def onFocusInController(self, var, button_name):
-        # enable Keyboard as controller
-        # print(event, var)
-        self.listener = Listener(
-            on_press=lambda ev: self.on_press(ev, var=var),
-            on_release=lambda ev: self.on_release(ev, var=var, button_name=button_name),
-        )
+    def onFocusInController(self, var: tk.StringVar) -> None:
+        """
+        入力欄を選んだとき: キーの受け付けを始め、押したキーをその欄に入れる
+        var: 選んだ入力欄の変数
+        """
+        # 入力欄を選んでいる間、押したキーをその欄に入れる
+        self._stop_listener()
+        self.listener = Listener(on_press=lambda key: self.on_press(key, var=var))
         self.listener.start()
         self._logger.debug("Activate key config window")
 
-    def onFocusOutController(self, event):
-        self.listener.stop()
-        self.listener = None
+    def onFocusOutController(self, event: tk.Event) -> None:
+        """入力欄からフォーカスが外れたとき: キーの受け付けをやめる"""
+        self._stop_listener()
 
-    def on_press(self, key, var):
-        try:
-            # print('alphanumeric key {0} pressed'.format(key.char))
-            var.set(key.char)
-        except AttributeError:
-            var.set(key)
-            # print(var)
-            # print('special key {0} pressed'.format(key))
+    def _stop_listener(self) -> None:
+        """キーの受け付けをやめる(受け付けていない場合は何もしない)"""
+        if self.listener is not None:
+            self.listener.stop()
+            self.listener = None
 
-    def on_release(self, key, var, button_name):
-        try:
-            spc = button_name.split(".")[0]
-            self._logger.debug(f"Released key :{var.get()}")
-            self.setting[f"KeyMap-{spc}"][button_name] = var.get()
-        except Exception:
-            pass
-        # print(f'{key} released')
+    def on_press(self, key: Key | KeyCode | None, var: tk.StringVar) -> None:
+        """
+        キーを押したとき(pynput のスレッドから呼ばれる): そのキーを入力欄に入れる
+        key: 押したキー(文字のキーはその文字、それ以外は Key.space のような名前で入れる。名前の付いていないキーは入れない)
+        var: 入れる先の入力欄の変数
+        """
+        char = getattr(key, "char", None)
+        text = char if char else str(key)
+        if text.startswith("<"):
+            # 名前の付いていないキー(保存しても読み込めない)は使わない
+            return
+        var.set(text)
 
-    def load_config(self):
+    def load_config(self) -> None:
+        """設定ファイルから、ゲーム機ごとのキーの対応を読み込んで、入力欄に表示する(保存されていないボタンは初期値)"""
         if os.path.isfile(self.SETTING_PATH):
             self.setting.read(self.SETTING_PATH, encoding="utf-8")
+        for console in KeyMap.CONSOLES:
+            for name, value in KeyMap.load_keymap(self.setting, console).items():
+                self.vars[console][name].set(value)
 
-        self.ZL.set(self.setting["KeyMap-Button"]["Button.ZL"])
-        self.L.set(self.setting["KeyMap-Button"]["Button.L"])
-        self.LCLICK.set(self.setting["KeyMap-Button"]["Button.LCLICK"])
-        self.ZR.set(self.setting["KeyMap-Button"]["Button.ZR"])
-        self.R.set(self.setting["KeyMap-Button"]["Button.R"])
-        self.RCLICK.set(self.setting["KeyMap-Button"]["Button.RCLICK"])
-        self.MINUS.set(self.setting["KeyMap-Button"]["Button.MINUS"])
-        self.CAPTURE.set(self.setting["KeyMap-Button"]["Button.CAPTURE"])
-        self.A.set(self.setting["KeyMap-Button"]["Button.A"])
-        self.B.set(self.setting["KeyMap-Button"]["Button.B"])
-        self.X.set(self.setting["KeyMap-Button"]["Button.X"])
-        self.Y.set(self.setting["KeyMap-Button"]["Button.Y"])
-        self.PLUS.set(self.setting["KeyMap-Button"]["Button.PLUS"])
-        self.HOME.set(self.setting["KeyMap-Button"]["Button.HOME"])
-        self.HAT_UP.set(self.setting["KeyMap-Hat"]["Hat.TOP"])
-        self.HAT_DOWN.set(self.setting["KeyMap-Hat"]["Hat.BTM"])
-        self.HAT_LEFT.set(self.setting["KeyMap-Hat"]["Hat.LEFT"])
-        self.HAT_RIGHT.set(self.setting["KeyMap-Hat"]["Hat.RIGHT"])
+    def find_duplicates(self) -> list[str]:
+        """
+        同じゲーム機の中で、同じキーを複数のボタンに割り当てているものを、メッセージのリストで返す
+        """
+        messages = []
+        for console in KeyMap.CONSOLES:
+            left, right = KeyMap.BUTTONS[console]
+            used = {}
+            for text, name in (*left, *right):
+                used.setdefault(self.vars[console][name].get(), []).append(text)
+            for value, texts in used.items():
+                if len(texts) > 1:
+                    messages.append(f"{console}: キー「{value}」 → {' / '.join(texts)}")
+        return messages
 
-    def save_config(self):
-        self.setting["KeyMap-Button"]["Button.ZL"] = self.ZL.get()
-        self.setting["KeyMap-Button"]["Button.L"] = self.L.get()
-        self.setting["KeyMap-Button"]["Button.LCLICK"] = self.LCLICK.get()
-        self.setting["KeyMap-Button"]["Button.ZR"] = self.ZR.get()
-        self.setting["KeyMap-Button"]["Button.R"] = self.R.get()
-        self.setting["KeyMap-Button"]["Button.RCLICK"] = self.RCLICK.get()
-        self.setting["KeyMap-Button"]["Button.MINUS"] = self.MINUS.get()
-        self.setting["KeyMap-Button"]["Button.CAPTURE"] = self.CAPTURE.get()
-        self.setting["KeyMap-Button"]["Button.A"] = self.A.get()
-        self.setting["KeyMap-Button"]["Button.B"] = self.B.get()
-        self.setting["KeyMap-Button"]["Button.X"] = self.X.get()
-        self.setting["KeyMap-Button"]["Button.Y"] = self.Y.get()
-        self.setting["KeyMap-Button"]["Button.PLUS"] = self.PLUS.get()
-        self.setting["KeyMap-Button"]["Button.HOME"] = self.HOME.get()
-
-        self.setting["KeyMap-Hat"]["Hat.TOP"] = self.HAT_UP.get()
-        self.setting["KeyMap-Hat"]["Hat.RIGHT"] = self.HAT_RIGHT.get()
-        self.setting["KeyMap-Hat"]["Hat.BTM"] = self.HAT_DOWN.get()
-        self.setting["KeyMap-Hat"]["Hat.LEFT"] = self.HAT_LEFT.get()
-
-        with open(self.SETTING_PATH, "w", encoding="utf-8") as file:
-            self.setting.write(file)
-
-    def apply_setting(self):
+    def save_config(self) -> bool:
+        """
+        入力欄の内容を設定ファイルに保存する。同じキーを複数のボタンに割り当てている場合は、警告して保存しない
+        保存した(または保存しないモードの)場合はTrueを返す
+        """
+        duplicates = self.find_duplicates()
+        if duplicates:
+            tkmsg.showwarning(
+                "Key Config",
+                "同じキーが複数のボタンに割り当てられています。設定は適用されません。\n\n" + "\n".join(duplicates),
+                parent=self.kc,
+            )
+            return False
+        if Profile.is_read_only():
+            # 同じプロファイルで2つ目以降に起動した場合は、ファイルには保存せず、このウィンドウの間だけ使う
+            for console in KeyMap.CONSOLES:
+                KeyMap.set_session_keymap(console, {name: var.get() for name, var in self.vars[console].items()})
+            tkmsg.showinfo(
+                "Key Config",
+                "このウィンドウは設定を保存しないモードのため、変更はこのウィンドウを閉じるまでの間だけ使われます。",
+                parent=self.kc,
+            )
+            return True
+        # 他の設定を古い内容で上書きしないよう、ファイルを読み直してから、キーの対応だけを書き換える
+        setting = configparser.ConfigParser()
+        setting.optionxform = str
+        if os.path.isfile(self.SETTING_PATH):
+            setting.read(self.SETTING_PATH, encoding="utf-8")
+        for console in KeyMap.CONSOLES:
+            KeyMap.store_keymap(setting, console, {name: var.get() for name, var in self.vars[console].items()})
         with open(self.SETTING_PATH, "w", encoding="utf-8") as file:
             self._logger.debug("Apply key setting")
-            self.setting.write(file)
-        if self.listener is not None:
-            self.listener.stop()
+            setting.write(file)
+        self.setting = setting
+        return True
 
-    def close(self):
+    def ok(self) -> None:
+        """
+        OK: 保存して閉じる(同じキーがある場合は閉じない)
+        """
+        self._stop_listener()
+        if self.save_config():
+            if self.on_saved is not None:
+                self.on_saved()
+            self._close()
+
+    def cancel(self) -> None:
+        """
+        キャンセル: 何も変えずに閉じる
+        """
+        self._close()
+
+    def _close(self) -> None:
+        """ウィンドウを閉じる(OK、キャンセル)。× ボタン用の関数が登録されていれば、それを呼ぶ"""
+        # ×ボタンと同じ閉じ方をする(開いた側が、開いていない状態に戻せるように)
+        if self._close_handler is not None:
+            self._close_handler()
+        else:
+            self.destroy()
+
+    def close(self) -> None:
+        """ウィンドウを隠し、キーの受け付けをやめる(ウィンドウは破棄しない)"""
         self.kc.withdraw()
-        if self.listener is not None:
-            self.listener.stop()
+        self._stop_listener()
 
-    def bind(self, event, func):
+    def bind(self, event: str, func: Callable[[tk.Event], object]) -> None:
+        """
+        ウィンドウのイベントに、呼ぶ関数を結び付ける
+        event: イベントの名前
+        func: 呼ぶ関数(イベントを受け取る)
+        """
         self.kc.bind(event, func)
 
-    def protocol(self, event, func):
+    def protocol(self, event: str, func: Callable[[], None]) -> None:
+        """
+        ウィンドウの操作に、呼ぶ関数を結び付ける
+        ("WM_DELETE_WINDOW" の関数は覚えておき、OK やキャンセルで閉じるときにも、× ボタンと同じ関数を呼ぶ)
+        event: 操作の名前
+        func: 呼ぶ関数
+        """
+        if event == "WM_DELETE_WINDOW":
+            self._close_handler = func
         self.kc.protocol(event, func)
 
-    def focus_force(self):
+    def focus_force(self) -> None:
+        """ウィンドウにフォーカスを移す(隠している場合は表示する)"""
         self.kc.focus_force()
         self.kc.deiconify()
 
-    def destroy(self):
-        if self.listener is not None:
-            self.listener.stop()
+    def destroy(self) -> None:
+        """キーの受け付けをやめ、図のコントローラーを片付けて、ウィンドウを破棄する"""
+        self._stop_listener()
+        for preview in self.previews:
+            preview.destroy()
+        self.previews = []
         self.kc.destroy()
 
 

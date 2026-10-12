@@ -1,0 +1,22 @@
+{
+  "name": "Xbox Controller",
+  "match": ["Xbox", "XInput"],
+  "buttons": {
+    "B": 0,
+    "A": 1,
+    "Y": 2,
+    "X": 3,
+    "L": 4,
+    "R": 5,
+    "MINUS": 6,
+    "PLUS": 7,
+    "LCLICK": 8,
+    "RCLICK": 9,
+    "HOME": 10,
+    "ZL": {"axis": 4, "threshold": 0.0},
+    "ZR": {"axis": 5, "threshold": 0.0}
+  },
+  "hat": {"type": "hat", "index": 0},
+  "sticks": {"lx": 0, "ly": 1, "rx": 2, "ry": 3},
+  "deadzone": 0.35
+}

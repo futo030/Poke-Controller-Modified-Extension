@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from Commands.Keys import Button
-from Commands.PythonCommandBase import PythonCommand
 from Commands.PythonCommandBase import ImageProcPythonCommand
 
 

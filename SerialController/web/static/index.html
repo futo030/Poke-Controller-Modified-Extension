@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Poke-Controller</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header>
+    <h1 id="app-name">Poke-Controller</h1>
+    <span class="chip" id="profile"></span>
+    <span class="chip" id="serial-status"></span>
+    <span class="chip" id="camera-status"></span>
+    <span class="chip warning" id="role" hidden>閲覧のみ</span>
+    <span class="chip error" id="connection" hidden>サーバーに接続していません</span>
+    <span class="header-menus">
+      <button type="button" class="menu-button" id="menu-settings" aria-expanded="false" aria-controls="settings">設定</button>
+      <button type="button" class="menu-button" id="menu-tools" aria-haspopup="true">ツール ▾</button>
+      <button type="button" class="menu-button" id="menu-view" aria-haspopup="true">表示 ▾</button>
+      <button type="button" class="menu-button" id="menu-help" aria-haspopup="true">ヘルプ ▾</button>
+      <button type="button" class="menu-button" id="exit-app" title="Poke-Controller を終了します">終了</button>
+    </span>
+  </header>
+
+  <main>
+    <section class="preview-column">
+      <div class="preview" id="preview">
+        <img id="stream" alt="キャプチャー画面" draggable="false">
+        <canvas id="overlay"></canvas>
+        <div class="preview-paused" id="preview-paused" hidden>プレビューを止めています (Realtime オフ)</div>
+      </div>
+      <div class="top-sash" id="top-sash" role="separator" aria-orientation="vertical" title="ドラッグでプレビューの幅を変えます (ダブルクリックで元に戻す)"></div>
+
+      <div class="toolbar">
+        <button id="start" class="primary">Start</button>
+        <button id="pause" disabled>Pause</button>
+        <button id="reload">Reload</button>
+        <span class="running" id="running-name"></span>
+        <span class="toolbar-right">
+          <button type="button" id="capture" title="カメラ画像を保存します (Captures フォルダ)">Capture</button>
+          <button type="button" id="open-captures" title="保存先のフォルダを開きます">Open</button>
+          <button type="button" id="send-line" title="今の画像を LINE に送ります">LINE</button>
+          <button type="button" id="send-discord" title="今の画像を Discord に送ります">Discord</button>
+        </span>
+      </div>
+      <p class="hint" id="preview-hint">プレビュー: Ctrl+クリックで座標と色を表示 / Ctrl+Shift+ドラッグで範囲を保存 / Ctrl+Alt+ドラッグで名前を付けて保存</p>
+
+      <fieldset class="inputs">
+        <legend>手動操作</legend>
+        <label><input type="checkbox" id="use-keyboard"> キーボード</label>
+        <label><input type="checkbox" id="use-controller"> コントローラー</label>
+        <label><input type="checkbox" id="use-left-mouse"> 左ドラッグ: Lスティック</label>
+        <label><input type="checkbox" id="use-right-mouse"> <span id="right-mouse-label">右ドラッグ: Rスティック</span></label>
+        <button id="record">Record</button>
+        <button type="button" id="release-all" title="押したまま・倒したままになっている入力を、すべて離します (実行中のコマンドは止めません)">すべての入力を離す</button>
+      </fieldset>
+
+      <fieldset class="softcon">
+        <legend>Software-Controller</legend>
+        <canvas id="softcon" width="380" height="190" aria-label="Software-Controller"></canvas>
+        <div class="softcon-side">
+          <label>Layout
+            <select data-setting="software_controller_layout" data-kind="str" data-options="softcon_layouts"></select>
+          </label>
+          <p class="hint">左クリック: 押している間だけ入力<br>右クリック / Shift+離す / HOLD: 押しっぱなしで固定</p>
+        </div>
+      </fieldset>
+    </section>
+
+    <div class="main-sash" id="main-sash" role="separator" aria-orientation="vertical" title="ドラッグで左右の幅を変えます (ダブルクリックで元に戻す)"></div>
+
+    <section class="side-column">
+      <div class="panel commands">
+        <div class="tabs" role="tablist">
+          <button role="tab" data-type="Python" aria-selected="true">Python</button>
+          <button role="tab" data-type="Mcu" aria-selected="false">Mcu</button>
+          <button role="tab" data-type="History" aria-selected="false">History</button>
+          <button role="tab" data-type="Shortcut" aria-selected="false">Shortcut</button>
+        </div>
+        <div class="filters">
+          <input type="search" id="command-filter" placeholder="名前で検索" aria-label="名前で検索">
+          <button type="button" id="tag-filter" aria-haspopup="true">Tags ▾</button>
+          <button type="button" id="history-sort" title="実行した日時の順を切り替えます" hidden>Last Run ▼</button>
+          <select id="command-sort" aria-label="並び順">
+            <option value="default">既定の順</option>
+            <option value="name_asc">名前 (昇順)</option>
+            <option value="name_desc">名前 (降順)</option>
+            <option value="mtime_asc">更新日時 (古い順)</option>
+            <option value="mtime_desc">更新日時 (新しい順)</option>
+            <option value="usage_desc">使用頻度 (多い順)</option>
+            <option value="usage_asc">使用頻度 (少ない順)</option>
+          </select>
+        </div>
+        <ul id="command-list" tabindex="0" aria-label="コマンド"></ul>
+        <div class="shortcut-bar">
+          <label>Shortcut
+            <select id="shortcut-num" aria-label="ショートカットの番号"></select>
+          </label>
+          <button type="button" id="shortcut-set">選択中のコマンドを設定</button>
+          <button type="button" id="shortcut-clear">解除</button>
+        </div>
+      </div>
+
+      <div class="side-sash" id="side-sash" role="separator" aria-orientation="vertical" title="ドラッグで左右の幅を変えます (ダブルクリックで元に戻す)"></div>
+      <div class="panel output">
+        <div class="tabs output-tabs" id="output-tabs" role="tablist" aria-label="出力ページ"></div>
+        <div class="output-head" data-pages-part>
+          <span id="output-label-1">Output#1</span>
+          <button class="small" data-clear="1">Clear</button>
+        </div>
+        <div class="output-area" id="output-1" data-pages-part></div>
+        <div class="output-sash" id="output-sash" data-pages-part role="separator" aria-orientation="horizontal" title="ドラッグで Output#1 の高さを変えます (ダブルクリックで元に戻す)"></div>
+        <div class="output-head" data-pages-part>
+          <span id="output-label-2">Output#2</span>
+          <button class="small" data-clear="2">Clear</button>
+        </div>
+        <div class="output-area" id="output-2" data-pages-part></div>
+        <div class="extra-view" id="extra-view" hidden>
+          <div class="output-head">
+            <span id="extra-label">Serial Monitor</span>
+            <span class="extra-tools">
+              <label id="log-level-label" hidden>Level: <select id="log-level" aria-label="表示するレベル"></select></label>
+              <span id="note-status" role="status" hidden></span>
+              <button class="small" id="extra-clear">Clear</button>
+            </span>
+          </div>
+          <div class="output-area">
+            <pre id="serial-text" tabindex="0"></pre>
+            <pre id="log-text" tabindex="0" hidden></pre>
+            <pre id="note-text" class="note-text" tabindex="0" spellcheck="false" aria-label="Note" hidden></pre>
+          </div>
+        </div>
+        <div class="output-search" id="output-search" hidden>
+          <input type="search" id="output-search-text" autocomplete="off" placeholder="検索" aria-label="出力画面の検索">
+          <span id="output-search-count" role="status"></span>
+          <button type="button" class="small" id="output-search-case" aria-pressed="false" title="大文字と小文字を区別する (今は、区別しない)">Aa</button>
+          <button type="button" class="small" id="output-search-previous" title="前(上)の一致へ (Enter)">▲</button>
+          <button type="button" class="small" id="output-search-next" title="次(下)の一致へ (Shift+Enter)">▼</button>
+          <button type="button" class="small" id="output-search-close" title="閉じる (Esc)">×</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <details class="settings" id="settings">
+    <summary>設定</summary>
+    <div class="settings-head">
+      <h2>設定</h2>
+      <button type="button" id="settings-close">閉じる</button>
+    </div>
+        <div class="settings-grid">
+          <fieldset class="span status-box">
+            <legend>Status</legend>
+            <dl id="status-list" title="今つながっている機器と、実行中のコマンドです (表示するだけで、設定は変えません)">
+              <dt>Camera Device:</dt><dd id="status-camera"></dd>
+              <dt>Audio Device (Input):</dt><dd id="status-audio_input"></dd>
+              <dt>(Output):</dt><dd id="status-audio_output"></dd>
+              <dt>Serial Device:</dt><dd id="status-serial"></dd>
+              <dt>実行中のコマンド:</dt><dd id="status-command"></dd>
+              <dt>開始時間:</dt><dd id="status-started"></dd>
+            </dl>
+          </fieldset>
+          <fieldset>
+            <legend>Camera</legend>
+            <label class="wide">Device
+              <select data-setting="camera_source" data-kind="int" data-options="cameras"></select>
+            </label>
+            <label>Capture Size
+              <select data-setting="capture_size" data-kind="str" data-options="capture_sizes" data-confirm="Capture Size を変更します。\n\n取り込む画像の大きさが変わるため、画像処理に影響します。\n・テンプレート画像との照合(画像認識)の結果が変わります\n・座標で指定している範囲(切り出し、目隠し等)がずれます\n\n変更しますか？(カメラを開き直します)"></select>
+            </label>
+            <label>FPS
+              <select data-setting="fps" data-kind="str" data-options="fps"></select>
+            </label>
+            <label><input type="checkbox" data-setting="is_use_mjpg" data-kind="bool" data-confirm="MJPG(圧縮形式)での取り込みを切り替えます。\n\n圧縮の有無で画像がわずかに変わるため、画像認識に影響します。\n・テンプレート画像との照合(画像認識)の類似度が変わります\n・しきい値の調整や、テンプレート画像の作り直しが必要になる場合があります\n\n変更しますか？(カメラを開き直します)"> MJPG</label>
+            <label id="show-windows-label"><input type="checkbox" data-setting="is_show_windows" data-kind="bool"> Windows</label>
+            <label><input type="checkbox" data-setting="is_show_realtime" data-kind="bool"> Realtime</label>
+            <span class="buttons">
+              <button type="button" data-action="scan">Scan Device</button>
+              <button type="button" data-action="camera">Reload Camera</button>
+            </span>
+            <label>Gain <output data-output="preview_gain"></output>
+              <input type="range" data-setting="preview_gain" data-kind="int" data-range="preview_gain_range" step="5">
+            </label>
+            <label>Gamma <output data-output="preview_gamma"></output>
+              <input type="range" data-setting="preview_gamma" data-kind="float" data-range="preview_gamma_range" step="0.05">
+            </label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Serial</legend>
+            <label class="wide">Device
+              <select data-setting="com_port" data-kind="int" data-options="ports"></select>
+            </label>
+            <label>Baud Rate
+              <select data-setting="baud_rate" data-kind="int" data-options="baud_rates"></select>
+            </label>
+            <label>Format
+              <select data-setting="serial_data_format_name" data-kind="str" data-options="formats"></select>
+            </label>
+            <label><input type="checkbox" data-setting="is_show_serial" data-kind="bool"> Show Serial</label>
+            <span class="buttons">
+              <button type="button" data-action="scan_ports">Scan Device</button>
+              <button type="button" data-action="serial" data-connect="1">Reload Port</button>
+              <button type="button" data-action="serial">Disconnect Port</button>
+            </span>
+          </fieldset>
+
+          <fieldset id="audio-settings">
+            <legend>Audio</legend>
+            <label><input type="checkbox" data-setting="is_use_audio" data-kind="bool"> Use Audio</label>
+            <label><input type="checkbox" data-setting="is_audio_playback" data-kind="bool"> Playback</label>
+            <label class="wide">Input
+              <select data-setting="audio_device" data-kind="str" data-options="audio_inputs"></select>
+            </label>
+            <label class="wide">Output
+              <select data-setting="audio_output_device" data-kind="str" data-options="audio_outputs"></select>
+            </label>
+            <label>Volume <output data-output="audio_volume"></output>
+              <input type="range" data-setting="audio_volume" data-kind="int" min="0" max="100" step="1">
+            </label>
+            <label class="wide">Level
+              <progress id="audio-meter" max="100" value="0" aria-label="音量"></progress>
+              <span id="audio-meter-text" class="meter-text"></span>
+            </label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Notification</legend>
+            <table>
+              <thead><tr><th></th><th>Start</th><th>End</th></tr></thead>
+              <tbody>
+                <tr><th>Windows</th>
+                  <td><input type="checkbox" data-setting="is_win_notification_start" data-kind="bool" aria-label="Windows Start"></td>
+                  <td><input type="checkbox" data-setting="is_win_notification_end" data-kind="bool" aria-label="Windows End"></td></tr>
+                <tr><th>LINE</th>
+                  <td><input type="checkbox" data-setting="is_line_notification_start" data-kind="bool" aria-label="LINE Start"></td>
+                  <td><input type="checkbox" data-setting="is_line_notification_end" data-kind="bool" aria-label="LINE End"></td></tr>
+                <tr><th>Discord</th>
+                  <td><input type="checkbox" data-setting="is_discord_notification_start" data-kind="bool" aria-label="Discord Start"></td>
+                  <td><input type="checkbox" data-setting="is_discord_notification_end" data-kind="bool" aria-label="Discord End"></td></tr>
+              </tbody>
+            </table>
+            <span class="buttons">
+              <button type="button" id="notify-windows-test">Windows 通知のテスト</button>
+            </span>
+          </fieldset>
+
+          <fieldset class="span" id="mask-settings">
+            <legend>Mask (目隠し)</legend>
+            <label><input type="checkbox" id="mask-show"> 表示する</label>
+            <label><input type="checkbox" id="mask-apply"> 保存する画像にも適用</label>
+            <label>形
+              <select id="mask-shape" aria-label="追加する目隠しの形"></select>
+            </label>
+            <button type="button" id="mask-add">追加 (プレビューをドラッグ)</button>
+            <div class="table-wrap">
+              <table id="mask-table">
+                <thead><tr><th>形</th><th>x1</th><th>y1</th><th>x2</th><th>y2</th><th>色</th><th>有効</th><th></th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <span class="buttons">
+              <input type="text" id="mask-file-name" placeholder="ファイル名" aria-label="書き出すファイル名" list="mask-file-list" size="14">
+              <datalist id="mask-file-list"></datalist>
+              <button type="button" id="mask-save">書き出す</button>
+              <button type="button" id="mask-load-replace">読み込む (置き換え)</button>
+              <button type="button" id="mask-load-add">読み込む (追加)</button>
+            </span>
+            <span class="status" id="mask-status" role="status"></span>
+          </fieldset>
+
+          <fieldset id="touch-settings">
+            <legend>Touch Screen (範囲)</legend>
+            <label>Start X <input type="number" id="touch-x1" min="0" aria-label="Start X"></label>
+            <label>Start Y <input type="number" id="touch-y1" min="0" aria-label="Start Y"></label>
+            <label>End X <input type="number" id="touch-x2" min="0" aria-label="End X"></label>
+            <label>End Y <input type="number" id="touch-y2" min="0" aria-label="End Y"></label>
+            <span class="buttons">
+              <button type="button" id="touch-apply">適用</button>
+              <button type="button" id="touch-draw">プレビューをドラッグして指定</button>
+            </span>
+            <p class="hint">座標は、取り込みサイズ(Capture Size)の上の値です。</p>
+            <span class="status" id="touchscreen-status" role="status"></span>
+          </fieldset>
+
+          <fieldset id="color-settings">
+            <legend>Controller Color (本体の色)</legend>
+            <label class="wide">種類
+              <select id="color-type" aria-label="コントローラーの種類"></select>
+            </label>
+            <span id="color-inputs" class="buttons"></span>
+            <label class="wide">Preset
+              <select id="color-preset" aria-label="色のプリセット"></select>
+            </label>
+            <span class="buttons">
+              <input type="text" id="color-preset-name" placeholder="プリセット名" aria-label="書き出すプリセットの名前" size="12">
+              <button type="button" id="color-preset-save">今の色を書き出す</button>
+            </span>
+            <span class="status" id="colors-status" role="status"></span>
+          </fieldset>
+
+          <fieldset class="span" id="keymap-settings">
+            <legend>Key Config (キーボード操作のキー)</legend>
+            <label>ゲーム機
+              <select id="keymap-console" aria-label="ゲーム機"></select>
+            </label>
+            <span class="buttons">
+              <button type="button" id="keymap-save">保存</button>
+              <button type="button" id="keymap-reload">元に戻す</button>
+            </span>
+            <p class="hint">欄を選んで、割り当てるキーを押してください。保存を押すまで反映されません。</p>
+            <div id="keymap-grid" class="keymap-grid"></div>
+            <span class="status" id="keymap-status" role="status"></span>
+          </fieldset>
+
+          <fieldset id="controller-settings">
+            <legend>Controller (接続したコントローラー)</legend>
+            <label class="wide">Device
+              <select data-setting="controller_device" data-kind="str" data-options="controller_devices"></select>
+            </label>
+            <span class="buttons">
+              <button type="button" data-action="scan_controllers">接続中のコントローラーを調べる</button>
+            </span>
+            <span class="buttons">
+              <button type="button" id="controller-setup-open">ボタンの割り当てを設定</button>
+            </span>
+            <p class="hint">選択中のコントローラーの入力を1つずつ押して、Switch のボタンに割り当てます。</p>
+          </fieldset>
+
+          <fieldset>
+            <legend>Others</legend>
+            <label><input type="checkbox" data-setting="is_show_value" data-kind="bool"> Value (類似度を表示)</label>
+            <label><input type="checkbox" data-setting="is_show_guide" data-kind="bool"> Guide (認識位置を表示)</label>
+            <label>Stdout
+              <select data-setting="stdout_destination" data-kind="str">
+                <option value="1">Output#1</option>
+                <option value="2">Output#2</option>
+              </select>
+            </label>
+            <label>ダイアログのボタン
+              <select data-setting="pos_dialogue_buttons" data-kind="str">
+                <option value="1">上</option>
+                <option value="2">下</option>
+                <option value="3">上と下</option>
+              </select>
+            </label>
+          </fieldset>
+
+          <!-- ここから下は、これまでのウィンドウの画面で「メニュー > コマンド」にあったもの -->
+          <fieldset id="discord-settings">
+            <legend>Discord (通知先)</legend>
+            <label class="wide">Name
+              <input type="text" id="discord-name" list="discord-names" autocomplete="off">
+              <datalist id="discord-names"></datalist>
+            </label>
+            <label class="wide">Webhook URL
+              <input type="password" id="discord-webhook_url" autocomplete="off">
+            </label>
+            <label><input type="checkbox" id="discord-show-url"> URL を表示</label>
+            <label class="wide">Username
+              <input type="text" id="discord-username" autocomplete="off">
+            </label>
+            <label class="wide">Avatar URL
+              <input type="text" id="discord-avatar_url" autocomplete="off">
+            </label>
+            <span class="buttons">
+              <button type="button" id="discord-save">保存</button>
+              <button type="button" id="discord-delete">削除</button>
+              <button type="button" id="discord-check">接続を確認</button>
+            </span>
+            <span class="status" id="discord-status" role="status"></span>
+          </fieldset>
+
+          <fieldset id="line-settings">
+            <legend>LINE (トークン)</legend>
+            <label class="wide">Token
+              <input type="password" id="line-token" autocomplete="off" placeholder="新しいトークン">
+            </label>
+            <span class="buttons">
+              <button type="button" id="line-save">保存</button>
+              <button type="button" id="line-check">接続を確認</button>
+            </span>
+            <span class="status" id="line-status" role="status"></span>
+          </fieldset>
+
+          <fieldset id="profile-settings">
+            <legend>Profile</legend>
+            <span id="profile-list" class="hint"></span>
+            <label class="wide">Name
+              <input type="text" id="profile-name" autocomplete="off" placeholder="新しいプロファイルの名前">
+            </label>
+            <label><input type="checkbox" id="profile-copy" checked> 今の設定を写す</label>
+            <label class="wide" id="profile-bat-row" hidden>起動用の bat
+              <select id="profile-bat">
+                <option value="uv">uv 向け (PokeConExtension.bat)</option>
+                <option value="classic">従来 (python Window.py)</option>
+              </select>
+            </label>
+            <span class="buttons">
+              <button type="button" id="profile-add">追加</button>
+            </span>
+            <span class="status" id="profile-status" role="status"></span>
+          </fieldset>
+        </div>
+  </details>
+
+  <div class="modal" id="viewer" hidden>
+    <div class="viewer" role="dialog" aria-labelledby="viewer-title">
+      <div class="viewer-head">
+        <h2 id="viewer-title"></h2>
+        <button type="button" id="viewer-copy" hidden>コピー</button>
+        <button type="button" id="viewer-close">閉じる</button>
+      </div>
+      <div class="viewer-body" id="viewer-body"></div>
+    </div>
+  </div>
+
+  <div class="floating" id="simulator" role="dialog" aria-labelledby="simulator-title" hidden>
+    <div class="viewer-head">
+      <h2 id="simulator-title">Controller Simulator</h2>
+      <select id="simulator-layout" aria-label="レイアウト"></select>
+      <button type="button" id="simulator-close">閉じる</button>
+    </div>
+    <canvas id="simulator-canvas" width="600" height="300" aria-label="Controller Simulator"></canvas>
+  </div>
+
+  <div class="modal tool-window" id="tag-editor" hidden>
+    <div class="viewer tool" role="dialog" aria-labelledby="tag-editor-title">
+      <div class="viewer-head">
+        <h2 id="tag-editor-title">タグの編集</h2>
+        <button type="button" id="tag-editor-close">閉じる</button>
+      </div>
+      <div class="tag-editor-body">
+        <div class="tag-editor-left">
+          <div class="tool-row">
+            <select id="tag-editor-type" aria-label="コマンドの種類"></select>
+            <input type="search" id="tag-editor-filter" placeholder="名前・タグで絞り込み" aria-label="絞り込み">
+          </div>
+          <ul id="tag-editor-list" class="tool-list" tabindex="0" aria-label="コマンド"></ul>
+          <p class="hint">⚠ 編集できない　● 保存していない変更がある</p>
+          <fieldset class="tag-bulk">
+            <legend>タグの一括変更(この種類のすべてのコマンド)</legend>
+            <div class="tool-row">
+              <select id="tag-bulk-tag" aria-label="変えるタグ"></select>
+              <input type="text" id="tag-bulk-new" autocomplete="off" placeholder="新しい名前" aria-label="新しい名前">
+              <button type="button" id="tag-bulk-rename">名前を変更</button>
+              <button type="button" id="tag-bulk-delete">削除</button>
+            </div>
+            <p class="status" id="tag-bulk-message" role="status"></p>
+          </fieldset>
+        </div>
+        <div class="tag-editor-right">
+          <p id="tag-editor-name"></p>
+          <p class="hint">付いているタグ(押すと外す):</p>
+          <div id="tag-editor-tags" class="chips"></div>
+          <p class="hint">タグを足す:</p>
+          <form id="tag-editor-add" class="tool-row">
+            <input type="text" id="tag-editor-new" autocomplete="off" aria-label="足すタグ">
+            <button type="submit" id="tag-editor-add-button">追加</button>
+          </form>
+          <p class="hint">ほかのコマンドで使っているタグ(押すと足す):</p>
+          <div id="tag-editor-suggest" class="chips"></div>
+          <p class="status" id="tag-editor-message" role="status"></p>
+        </div>
+      </div>
+      <div class="tool-foot">
+        <span id="tag-editor-status"></span>
+        <button type="button" id="tag-editor-revert">元に戻す</button>
+        <button type="button" id="tag-editor-save" class="primary">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal tool-window" id="script-creator" hidden>
+    <form class="dialogue tool-form" id="script-form" aria-labelledby="script-title">
+      <h2 id="script-title" class="wide">新しい自動化スクリプトをつくる</h2>
+      <label for="script-name">スクリプト名:</label>
+      <div>
+        <input type="text" id="script-name" autocomplete="off">
+        <p class="hint">コマンドの一覧に表示する名前です(日本語も使えます)。</p>
+      </div>
+      <label for="script-author">作成者名:</label>
+      <div>
+        <input type="text" id="script-author" autocomplete="off">
+        <p class="hint">スクリプト・README.md・License.txt に書く名前です。空にすると「(名前)」と書いておきます。</p>
+      </div>
+      <label for="script-file">ファイル名:</label>
+      <div>
+        <span class="tool-row"><input type="text" id="script-file" autocomplete="off"> .py</span>
+        <p class="hint">半角の英数字と「-」「_」だけが使えます。</p>
+      </div>
+      <label for="script-folder">スクリプト格納場所:</label>
+      <div>
+        <input type="text" id="script-folder" list="script-folders" autocomplete="off" placeholder="(直下)">
+        <datalist id="script-folders"></datalist>
+        <p class="hint">Commands/PythonCommands の中のフォルダーです。新しい名前を入力すると、作ります。空にすると、直下に作ります。</p>
+      </div>
+      <span>BridgeFunctions の使用:</span>
+      <div>
+        <span class="tool-row">
+          <label><input type="radio" name="script-bridge" id="script-bridge-yes"> 使用する (Y)</label>
+          <label><input type="radio" name="script-bridge" id="script-bridge-no" checked> 使用しない (N)</label>
+        </span>
+        <p class="hint">Poke-Controller Modified でも同じスクリプトを動かすための、橋渡し関数です。</p>
+      </div>
+      <label for="script-template">画像保存先:</label>
+      <div>
+        <span class="tool-row">
+          <select id="script-location" aria-label="画像保存先の場所" disabled>
+            <option value="template">Template/</option>
+            <option value="script">[スクリプト格納場所]/</option>
+          </select>
+          <input type="text" id="script-template" list="script-templates" autocomplete="off">
+          <datalist id="script-templates"></datalist>
+        </span>
+        <p class="hint">テンプレート画像を置くフォルダーです。空にすると、画像を使わないスクリプトを作ります。BridgeFunctions を使用する場合は、スクリプト格納場所の中にも置けます。</p>
+      </div>
+      <p class="hint wide" id="script-preview"></p>
+      <p class="status wide" id="script-message" role="status"></p>
+      <div class="dialogue-buttons wide">
+        <button type="submit" class="primary" id="script-create">作成</button>
+        <button type="button" id="script-cancel">キャンセル</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="modal tool-window" id="monitor" hidden>
+    <div class="viewer tool monitor" role="dialog" aria-labelledby="monitor-title">
+      <div class="viewer-head">
+        <h2 id="monitor-title">モニター</h2>
+        <label>数 <input type="number" id="monitor-count" min="1" max="12" value="4"></label>
+        <label>映像 (fps) <input type="number" id="monitor-fps" min="2" max="30" value="5"></label>
+        <button type="button" id="monitor-start-all">All Start</button>
+        <button type="button" id="monitor-stop-all">All Stop</button>
+        <button type="button" id="monitor-close">閉じる</button>
+      </div>
+      <div class="monitor-grid" id="monitor-grid"></div>
+      <div class="tool-foot">
+        <span id="monitor-status"></span>
+        <span id="monitor-summary"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="floating keyboard" id="switch-keyboard" role="dialog" aria-labelledby="switch-keyboard-title" hidden>
+    <div class="viewer-head">
+      <h2 id="switch-keyboard-title">Keyboard</h2>
+      <span class="tool-tabs" role="tablist">
+        <button type="button" role="tab" id="kb-tab-keys" aria-selected="true">キーボード</button>
+        <button type="button" role="tab" id="kb-tab-text" aria-selected="false">テキスト入力</button>
+      </span>
+      <button type="button" id="switch-keyboard-close">閉じる</button>
+    </div>
+    <div class="kb-board" id="kb-keys-panel">
+      <div class="kb-column">
+        <div class="kb-pages" id="kb-pages"></div>
+        <button type="button" class="kb-side" id="kb-small">小字゛゜</button>
+        <button type="button" class="kb-side" id="kb-sync" title="Switch 側の入力モードを、今のページに合わせ直します">&#127760;</button>
+      </div>
+      <div class="kb-grid" id="kb-grid"></div>
+      <div class="kb-column">
+        <button type="button" class="kb-side" id="kb-backspace" title="1 文字消す">⌫</button>
+        <button type="button" class="kb-side" id="kb-space">空白</button>
+        <button type="button" class="kb-side" id="kb-enter">改行</button>
+        <button type="button" class="kb-side kb-ok" id="kb-ok" title="コントローラーの + ボタンを押します">OK</button>
+      </div>
+    </div>
+    <div class="kb-text" id="kb-text-panel" hidden>
+      <p>文字を入力して、Enter を押すと、Switch に送ります。</p>
+      <form id="kb-text-form" class="tool-row">
+        <input type="text" id="kb-text" autocomplete="off" aria-label="送る文字">
+        <button type="submit" id="kb-send">送信</button>
+      </form>
+      <p id="kb-preview"></p>
+      <label><input type="checkbox" id="kb-send-enter"> 送信した後に、改行 (Enter) も送る</label>
+      <p class="hint" id="kb-note"></p>
+    </div>
+    <div class="kb-foot">
+      <label><input type="checkbox" id="kb-auto" checked> Switch 側の入力モード(かな / カナ / 英字)を、自動で切り替える</label>
+      <p class="status" id="kb-status" role="status"></p>
+    </div>
+  </div>
+
+  <div class="modal" id="exited" hidden>
+    <div class="dialogue" role="alertdialog" aria-labelledby="exited-title">
+      <h2 id="exited-title">Poke-Controller を終了しました</h2>
+      <p>このタブは閉じてかまいません。もう一度使うには、Poke-Controller を起動し直してから、このページを再読み込みしてください。</p>
+    </div>
+  </div>
+
+  <div class="modal" id="controller-setup" hidden>
+    <div class="dialogue setup" role="dialog" aria-labelledby="setup-title">
+      <h2 id="setup-title">コントローラーの設定</h2>
+      <p class="hint" id="setup-device"></p>
+      <p class="hint" id="setup-file"></p>
+      <p id="setup-progress"></p>
+      <p class="setup-instruction" id="setup-instruction"></p>
+      <p id="setup-current"></p>
+      <p class="hint" id="setup-inputs"></p>
+      <div class="table-wrap" id="setup-summary-wrap" hidden>
+        <table id="setup-summary">
+          <thead><tr><th>Switch</th><th>コントローラー</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="status" id="setup-status" role="status"></p>
+      <div class="dialogue-buttons">
+        <button type="button" id="setup-back">戻る</button>
+        <button type="button" id="setup-skip">スキップ</button>
+        <button type="button" id="setup-clear">割り当てなし</button>
+        <button type="button" id="setup-save" class="primary" hidden>保存</button>
+        <button type="button" id="setup-cancel">中止</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="popup-menu" id="popup-menu" role="menu" hidden></div>
+
+  <div class="modal" id="dialogue" hidden>
+    <form class="dialogue" id="dialogue-form">
+      <h2 id="dialogue-title"></h2>
+      <p id="dialogue-desc" hidden></p>
+      <div class="dialogue-buttons" id="dialogue-buttons-top" hidden>
+        <button type="submit" class="primary">OK</button>
+        <button type="button" data-cancel>Cancel</button>
+      </div>
+      <div class="dialogue-fields" id="dialogue-fields"></div>
+      <div class="dialogue-buttons" id="dialogue-buttons-bottom" hidden>
+        <button type="submit" class="primary">OK</button>
+        <button type="button" data-cancel>Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="/static/app.js"></script>
+  <script src="/static/softcon.js"></script>
+  <script src="/static/editors.js"></script>
+  <script src="/static/extras.js"></script>
+  <script src="/static/tools.js"></script>
+  <script src="/static/outview.js"></script>
+</body>
+</html>

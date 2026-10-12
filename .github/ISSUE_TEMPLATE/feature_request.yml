@@ -1,0 +1,35 @@
+name: 要望・提案
+description: 追加してほしい機能、変えてほしい動き
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 困っていること・やりたいこと
+      description: どんな場面で、何ができなくて困っているかを書いてください。
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: こうなってほしい
+      description: 思い描いている動きや画面があれば書いてください。
+    validations:
+      required: false
+  - type: dropdown
+    id: screen
+    attributes:
+      label: 対象の画面
+      options:
+        - これまでのウィンドウの画面
+        - Webブラウザ版の画面 (--ui web)
+        - 両方 / 画面に関係しない
+    validations:
+      required: false
+  - type: textarea
+    id: notes
+    attributes:
+      label: 補足
+      description: 参考になるツールや記事、今の回避方法などがあれば書いてください。
+    validations:
+      required: false

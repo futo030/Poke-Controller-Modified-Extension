@@ -1,0 +1,66 @@
+name: 不具合の報告
+description: 動かない、エラーが出る、表示がおかしい、などの報告
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        報告ありがとうございます。分かる範囲で記入してください。
+        **Discord の Webhook の URL や、LINE などのトークンは貼らないでください。**
+  - type: textarea
+    id: summary
+    attributes:
+      label: 起きていること
+      description: 何をしたときに、どうなったかを書いてください。
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 再現の手順
+      description: 同じ状態にするための手順を、番号を付けて書いてください。
+      placeholder: |
+        1. ○○タブで ×× を選ぶ
+        2. △△ボタンを押す
+        3. エラーが表示される
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待していた動き
+    validations:
+      required: false
+  - type: dropdown
+    id: screen
+    attributes:
+      label: 使っている画面
+      options:
+        - これまでのウィンドウの画面
+        - Webブラウザ版の画面 (--ui web)
+        - 両方
+    validations:
+      required: true
+  - type: textarea
+    id: version
+    attributes:
+      label: バージョンの情報
+      description: メニューの ヘルプ > 環境の診断 の「マスクしてコピー」(フォルダーの場所を隠してコピーします)で、内容を貼ってください。開けない場合は、ツールのバージョン・OS・Python のバージョンを書いてください。
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: devices
+    attributes:
+      label: 使っている機材
+      description: マイコンの種類と Data Format、キャプチャーボード、コントローラーなど、関係しそうなものを書いてください。
+    validations:
+      required: false
+  - type: textarea
+    id: log
+    attributes:
+      label: エラーの内容・ログ
+      description: 出力画面(Output)やコンソールに出た内容、SerialController/log フォルダのログの該当部分を貼ってください。画面の写真でもかまいません。
+      render: text
+    validations:
+      required: false

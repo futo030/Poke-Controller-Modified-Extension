@@ -1,0 +1,328 @@
+{
+ "files": {
+  "Commands/CommandBase.py": {
+   "functions": {},
+   "classes": {
+    "Command": {
+     "bases": [],
+     "methods": {
+      "__init__": ["self"],
+      "checkIfAlive": ["self"],
+      "dialogue": ["self", "title", "message", "desc=None", "need=list"],
+      "dialogue6widget": ["self", "title", "dialogue_list", "desc=None", "need=list"],
+      "dialogue6widget_save_settings": ["self", "title", "dialogue_list", "filename", "desc=None", "need=list"],
+      "dialogue6widget_select_settings": ["self", "title", "dialogue_list", "dirname", "desc=None", "need=list"],
+      "end": ["self", "ser"],
+      "finish": ["self"],
+      "get_output_page_for_current_thread": ["cls"],
+      "mqtt_change_broker_address": ["self", "broker_address"],
+      "mqtt_change_clientId": ["self", "clientId"],
+      "mqtt_change_id": ["self", "id"],
+      "mqtt_change_pub_token": ["self", "pub_token"],
+      "mqtt_change_sub_token": ["self", "sub_token"],
+      "mqtt_receive_message": ["self", "roomid", "header", "show_msg=False"],
+      "mqtt_receive_message2": ["self", "roomid", "headerlist", "show_msg=False"],
+      "mqtt_transmit_message": ["self", "roomid", "message"],
+      "output_to_page": ["cls", "page"],
+      "print_s": ["self", "*objects", "sep=' '", "end='\\n'"],
+      "print_t": ["self", "*objects", "sep=' '", "end='\\n'"],
+      "print_t1": ["self", "*objects", "sep=' '", "end='\\n'"],
+      "print_t1b": ["self", "mode", "*objects", "sep=' '", "end='\\n'"],
+      "print_t2": ["self", "*objects", "sep=' '", "end='\\n'"],
+      "print_t2b": ["self", "mode", "*objects", "sep=' '", "end='\\n'"],
+      "print_tb": ["self", "mode", "*objects", "sep=' '", "end='\\n'"],
+      "print_tbs": ["self", "mode", "*objects", "sep=' '", "end='\\n'"],
+      "print_ts": ["self", "*objects", "sep=' '", "end='\\n'"],
+      "register_output_thread": ["cls", "page"],
+      "socket_change_alive": ["self", "flag"],
+      "socket_change_ipaddr": ["self", "addr"],
+      "socket_change_port": ["self", "port"],
+      "socket_connect": ["self"],
+      "socket_disconnect": ["self"],
+      "socket_receive_message": ["self", "header", "show_msg=False"],
+      "socket_receive_message2": ["self", "headerlist", "show_msg=False"],
+      "socket_transmit_message": ["self", "message"],
+      "start": ["self", "ser", "postProcess=None"],
+      "unregister_output_thread": ["cls"]
+     },
+     "attributes": ["app_name", "canvas", "cur_command_name", "dialogue_handler", "isDiscordNotEnd", "isDiscordNotStart", "isGuide", "isImage", "isLineNotEnd", "isLineNotStart", "isPause", "isRunning", "isSimilarity", "isWinNotEnd", "isWinNotStart", "message_dialogue", "mqtt0", "output_page", "pos_dialogue_buttons", "profilename", "socket0", "stdout_destination", "text_area_1", "text_area_2"]
+    }
+   },
+   "variables": []
+  },
+  "Commands/PythonCommandBase.py": {
+   "functions": {
+    "convertCv2Format": ["crop_fmt=''", "crop=[]"],
+    "format_elapsed_time": ["seconds"],
+    "generateRandomCharacter": ["n"],
+    "precise_sleep": ["duration"]
+   },
+   "classes": {
+    "ImageProcPythonCommand": {
+     "bases": ["PythonCommand"],
+     "methods": {
+      "LINE_image": ["self", "txt", "crop_fmt=''", "crop=[]", "token='token'"],
+      "__init__": ["self", "cam", "gui=None"],
+      "discord_image": ["self", "content=''", "index=0", "crop_fmt=''", "crop=[]", "keys=DEFAULT_DISCORD_WEBHOOK", "name=None"],
+      "displayRectangle": ["self", "max_loc", "width", "height", "tag=None", "ms=2000", "color=['blue', 'orange']", "crop_fmt=''", "crop=[]"],
+      "displayText": ["self", "position", "txt", "tag=None", "ms=2000", "font='UD デジタル 教科書体 NP-B'", "fontsize=20", "color='black'"],
+      "getCameraImage": ["self", "crop_fmt=''", "crop=[]"],
+      "getInterframeDiff": ["self", "frame1", "frame2", "frame3", "threshold"],
+      "get_filespec": ["self", "filename", "mode='t'"],
+      "isContainTemplate": ["self", "template_path", "threshold=0.7", "use_gray=True", "show_value=False", "show_position=True", "show_only_true_rect=True", "ms=2000", "crop_fmt=''", "crop=[]", "mask_path=None", "use_gpu=False", "BGR_range=None", "threshold_binary=None", "crop_template=[]", "show_image=False", "color=['blue', 'red', 'orange']"],
+      "isContainTemplateGPU": ["self", "template_path", "threshold=0.7", "use_gray=True", "show_value=False", "show_position=True", "show_only_true_rect=True", "ms=2000", "crop_fmt=''", "crop=[]", "mask_path=None", "BGR_range=None", "threshold_binary=None", "crop_template=[]", "show_image=False", "color=['blue', 'red', 'orange']"],
+      "isContainTemplate_max": ["self", "template_path_list", "threshold=0.7", "use_gray=True", "show_value=False", "show_position=True", "show_only_true_rect=True", "ms=2000", "crop_fmt=''", "crop=[]", "mask_path_list=[]", "BGR_range=None", "threshold_binary=None", "crop_template=[]", "show_image=False", "color=['blue', 'red', 'orange']"],
+      "isContainedImage": ["self", "image_path", "threshold=0.7", "use_gray=True", "show_value=False", "show_position=True", "show_only_true_rect=True", "ms=2000", "crop_fmt=''", "crop=[]", "mask_path=None", "use_gpu=False", "BGR_range=None", "threshold_binary=None", "crop_template=[]", "show_image=False", "color=['blue', 'red', 'orange']"],
+      "openImage": ["self", "filename", "mode='t'"],
+      "pausedecorator2": ["func"],
+      "popupImage": ["self", "crop_fmt=''", "crop=[]", "title='image'"],
+      "saveCapture": ["self", "filename=None", "crop_fmt=''", "crop=[]", "mode=True"],
+      "setTemplateDir": ["self", "path"]
+     },
+     "attributes": ["camera", "capture_path_name", "gui", "pausedecorator3", "template_path_name"]
+    },
+    "PythonCommand": {
+     "bases": ["CommandBase.Command"],
+     "methods": {
+      "KeyBoard_Init": ["self"],
+      "LINE_text": ["self", "txt", "token='token'"],
+      "PressKey": ["self", "keyvalue", "show_value=False"],
+      "ReleaseKey": ["self", "keyvalue", "show_value=False"],
+      "TypeKey": ["self", "keyvalue", "show_value=False"],
+      "TypeString": ["self", "text"],
+      "TypeStringln": ["self", "text"],
+      "__init__": ["self"],
+      "checkIfAlive": ["self"],
+      "direct_serial": ["self", "serialcommands", "waittime"],
+      "discord_text": ["self", "content=''", "index=0", "keys=DEFAULT_DISCORD_WEBHOOK", "name=None"],
+      "do": ["self"],
+      "do_safe": ["self", "ser"],
+      "do_safe_with_output_page": ["self", "ser", "output_page"],
+      "end": ["self", "ser"],
+      "finish": ["self"],
+      "hold": ["self", "buttons", "wait=0.1"],
+      "holdChange": ["self", "buttons", "wait=0.1"],
+      "holdEnd": ["self", "buttons"],
+      "pausedecorator": ["func"],
+      "press": ["self", "buttons", "duration=0.1", "wait=0.1"],
+      "pressRep": ["self", "buttons", "repeat", "duration=0.1", "interval=0.1", "wait=0.1"],
+      "reload_com_port": ["self"],
+      "sendStopRequest": ["self"],
+      "short_wait": ["self", "wait"],
+      "show_var": ["self"],
+      "start": ["self", "ser", "postProcess"],
+      "wait": ["self", "wait"],
+      "waitWhilePaused": ["self"]
+     },
+     "attributes": ["Discord", "Line", "alive", "keys", "postProcess", "thread"]
+    },
+    "StopThread": {
+     "bases": ["Exception"],
+     "methods": {},
+     "attributes": []
+    }
+   },
+   "variables": ["CROP_FORMAT_NAMES", "HIDDEN_VARIABLES", "PAUSE_POLL_INTERVAL", "PYTHON_COMMANDS_DIR", "SEPARATOR_LINE", "SPIN_MARGIN", "STOP_POLL_INTERVAL", "TIME_FORMAT", "VARIABLES_PER_PAGE", "VARIABLE_VALUE_MAX_LENGTH"]
+  },
+  "Commands/McuCommandBase.py": {
+   "functions": {},
+   "classes": {
+    "McuCommand": {
+     "bases": ["CommandBase.Command"],
+     "methods": {
+      "__init__": ["self", "sync_name"],
+      "end": ["self", "ser"],
+      "start": ["self", "ser", "postProcess"]
+     },
+     "attributes": ["postProcess", "sync_name"]
+    }
+   },
+   "variables": []
+  },
+  "Commands/Keys.py": {
+   "functions": {
+    "convert_button_bits": ["bits", "convert=conversion_default_button"],
+    "get_button_conversion": ["serial_data_format_name"],
+    "is_ftdi_format": ["serial_data_format_name"],
+    "revert_button_bits": ["bits", "convert=conversion_default_button"]
+   },
+   "classes": {
+    "Button": {
+     "bases": ["IntFlag"],
+     "methods": {},
+     "attributes": ["A", "B", "CAPTURE", "HOME", "L", "LCLICK", "MINUS", "PLUS", "POWER", "R", "RCLICK", "SELECT", "START", "WIRELESS", "X", "Y", "ZL", "ZR"]
+    },
+    "Direction": {
+     "bases": [],
+     "methods": {
+      "__init__": ["self", "stick", "angle", "magnification=1.0", "isDegree=True", "showName=None"],
+      "getTilting": ["self"]
+     },
+     "attributes": ["DOWN", "DOWN_LEFT", "DOWN_RIGHT", "LEFT", "RIGHT", "R_DOWN", "R_DOWN_LEFT", "R_DOWN_RIGHT", "R_LEFT", "R_RIGHT", "R_UP", "R_UP_LEFT", "R_UP_RIGHT", "UP", "UP_LEFT", "UP_RIGHT", "angle_for_show", "mag", "showName", "stick", "x", "y"]
+    },
+    "Hat": {
+     "bases": ["IntEnum"],
+     "methods": {},
+     "attributes": ["BTM", "BTM_LEFT", "BTM_RIGHT", "CENTER", "LEFT", "RIGHT", "TOP", "TOP_LEFT", "TOP_RIGHT"]
+    },
+    "InputSource": {
+     "bases": ["IntEnum"],
+     "methods": {},
+     "attributes": ["COMMAND", "KEYBOARD", "MOUSE", "PROCON"]
+    },
+    "KeyPress": {
+     "bases": [],
+     "methods": {
+      "__init__": ["self", "ser", "source=InputSource.COMMAND"],
+      "end": ["self"],
+      "hold": ["self", "btns"],
+      "holdChange": ["self", "btns"],
+      "holdEnd": ["self", "btns"],
+      "init_hat": ["self"],
+      "input": ["self", "btns", "ifPrint=True"],
+      "inputEnd": ["self", "btns", "ifPrint=True", "unset_hat=True", "unset_Touchscreen=True"],
+      "neutral": ["self"],
+      "release": ["self"],
+      "serialcommand_direct_send": ["self", "serialcommands", "waittime"]
+     },
+     "attributes": ["NEUTRAL", "btn_name2", "format", "holdButton", "inputEnd_time_0", "input_time_0", "input_time_1", "pushing", "pushing2", "pushing_to_show", "q", "ser", "serial_data_format_name", "source", "was_neutral"]
+    },
+    "SendFormat": {
+     "bases": [],
+     "methods": {
+      "__init__": ["self"],
+      "convert2list": ["self"],
+      "convert2list2": ["self", "mode=0"],
+      "convert2str": ["self"],
+      "fixOtherAxis": ["self", "fix_target"],
+      "resetAllButtons": ["self"],
+      "resetAllDirections": ["self"],
+      "setAnyDirection": ["self", "dirs", "x_reverse=False", "y_reverse=False"],
+      "setButton": ["self", "btns", "convert=conversion_default_button"],
+      "setHat": ["self", "btns", "convert=convert_hat_default"],
+      "setTouchscreen": ["self", "dirs"],
+      "unsetButton": ["self", "btns", "convert=conversion_default_button"],
+      "unsetDirection": ["self", "dirs"],
+      "unsetHat": ["self", "convert=convert_hat_default"],
+      "unsetTouchscreen": ["self"]
+     },
+     "attributes": ["Hat_pos", "L_stick_changed", "R_stick_changed", "format"]
+    },
+    "Stick": {
+     "bases": ["Enum"],
+     "methods": {},
+     "attributes": ["LEFT", "RIGHT"]
+    },
+    "Tilt": {
+     "bases": ["Enum"],
+     "methods": {},
+     "attributes": ["DOWN", "LEFT", "RIGHT", "R_DOWN", "R_LEFT", "R_RIGHT", "R_UP", "UP"]
+    },
+    "Touchscreen": {
+     "bases": [],
+     "methods": {
+      "__init__": ["self", "x", "y"]
+     },
+     "attributes": ["x", "y"]
+    }
+   },
+   "variables": ["FTDI_FORMAT_PREFIX", "NEUTRAL", "center", "conversion_3ds_controller_button", "conversion_default_button", "convert_hat_3ds_controller", "convert_hat_default", "max", "min"]
+  },
+  "Commands/SwitchKeyboard.py": {
+   "functions": {},
+   "classes": {
+    "KEY": {
+     "bases": ["IntEnum"],
+     "methods": {},
+     "attributes": ["BACKSPACE", "DELETE", "DOWN_ARROW", "ENTER", "JP_BACKSLASH", "JP_HANZEN", "JP_HENKAN", "JP_HIRAGANA", "LEFT_ARROW", "RIGHT_ARROW", "SPACE", "UP_ARROW"]
+    }
+   },
+   "variables": []
+  }
+ },
+ "values": {
+  "Commands.Keys.Button": {
+   "Y": 1,
+   "B": 2,
+   "A": 4,
+   "X": 8,
+   "L": 16,
+   "R": 32,
+   "ZL": 64,
+   "ZR": 128,
+   "MINUS": 256,
+   "PLUS": 512,
+   "LCLICK": 1024,
+   "RCLICK": 2048,
+   "HOME": 4096,
+   "CAPTURE": 8192,
+   "SELECT": 256,
+   "START": 512,
+   "POWER": 1024,
+   "WIRELESS": 2048
+  },
+  "Commands.Keys.Direction": {
+   "UP": ["LEFT", 128, 255],
+   "RIGHT": ["LEFT", 255, 127],
+   "DOWN": ["LEFT", 128, 0],
+   "LEFT": ["LEFT", 0, 127],
+   "UP_RIGHT": ["LEFT", 218, 217],
+   "DOWN_RIGHT": ["LEFT", 218, 37],
+   "DOWN_LEFT": ["LEFT", 38, 37],
+   "UP_LEFT": ["LEFT", 38, 217],
+   "R_UP": ["RIGHT", 128, 255],
+   "R_RIGHT": ["RIGHT", 255, 127],
+   "R_DOWN": ["RIGHT", 128, 0],
+   "R_LEFT": ["RIGHT", 0, 127],
+   "R_UP_RIGHT": ["RIGHT", 218, 217],
+   "R_DOWN_RIGHT": ["RIGHT", 218, 37],
+   "R_DOWN_LEFT": ["RIGHT", 38, 37],
+   "R_UP_LEFT": ["RIGHT", 38, 217]
+  },
+  "Commands.Keys.Hat": {
+   "TOP": 0,
+   "TOP_RIGHT": 1,
+   "RIGHT": 2,
+   "BTM_RIGHT": 3,
+   "BTM": 4,
+   "BTM_LEFT": 5,
+   "LEFT": 6,
+   "TOP_LEFT": 7,
+   "CENTER": 8
+  },
+  "Commands.Keys.InputSource": {
+   "COMMAND": 0,
+   "KEYBOARD": 1,
+   "MOUSE": 2,
+   "PROCON": 3
+  },
+  "Commands.Keys.Stick": {
+   "LEFT": 1,
+   "RIGHT": 2
+  },
+  "Commands.Keys.Tilt": {
+   "UP": 1,
+   "RIGHT": 2,
+   "DOWN": 3,
+   "LEFT": 4,
+   "R_UP": 5,
+   "R_RIGHT": 6,
+   "R_DOWN": 7,
+   "R_LEFT": 8
+  },
+  "Commands.SwitchKeyboard.KEY": {
+   "SPACE": 32,
+   "ENTER": 40,
+   "BACKSPACE": 42,
+   "DELETE": 76,
+   "RIGHT_ARROW": 79,
+   "LEFT_ARROW": 80,
+   "DOWN_ARROW": 81,
+   "UP_ARROW": 82,
+   "JP_HANZEN": 53,
+   "JP_BACKSLASH": 135,
+   "JP_HIRAGANA": 136,
+   "JP_HENKAN": 138
+  }
+ }
+}

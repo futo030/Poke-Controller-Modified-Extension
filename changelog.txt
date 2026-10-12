@@ -1,3 +1,251 @@
+■ver.0.2.0
+  ・機能追加/変更(画面)
+    ・画面下のタブを Status / Camera / Audio / Serial / Touch Screen / Manual Control / Commands / Notification / Mask / Others の10個に整理し、各タブの配置を見直し
+    ・Status タブを追加(いちばん左。Camera タブの左。開いているカメラと Capture Size、音声の入力と出力のデバイス、接続しているシリアルの機器・COM ポート・Baud Rate、実行中のコマンドと、開始した時刻(コマンドの下の行)を表示する。設定は変えない)
+    ・ミニ画面(コマンドの選択と実行に必要な部品だけを並べた幅の狭い画面)を追加
+    ・右側のパネル(Output・Software-Controller)の位置を、右 / 下 / 表示しない で切り替える機能を追加(通常の画面とミニ画面で位置を引き継ぐ)
+    ・画面の領域の間に、マウスで動かせる仕切り線を追加(ウィンドウの大きさを変えても比率を保持。Output#1/#2の間にも追加)
+    ・プレビューを、Main Panelに収まる最大の大きさで表示するよう変更(Show Sizeで大きさを選ぶとウィンドウの大きさが変わる)
+    ・テーマ(配色)の変更機能を追加(デフォルト・ダーク3種類・明るい配色5種類。プロファイルごとに保存)
+    ・テーマを自分で作る機能を追加(表示 > テーマ > テーマを作る / 編集する...。色を選ぶ画面で、選んだ色を本体の画面で試しながら作って保存する。SerialController/themes に、配色を書いたファイルを置いて足すこともできる)
+    ・プレビューの明るさ(Gain・Gamma)を変える機能を追加(表示のみ。キャプチャー・スクリーンショット・画像処理には影響しない)
+    ・Screenshotボタンを追加(アプリケーションのウィンドウ全体を保存)
+    ・保存した画像のパスを、Output上でクリックして開けるリンクに変更
+    ・Instruction Manualに「Discord 通知の設定」の項目を追加(Discord でウェブフックを作り、このツールに登録して、確かめるまでの手順を、画面の写真つきで説明)
+    ・Instruction Manualに「ハードウェアの設定」の項目を追加(Arduino Leonardo と CH552 Serial の設定の手順のページを案内)。マニュアルの中の URL を、クリックするとブラウザで開くリンクに変更
+    ・機能紹介(ver.0.2.0の新機能紹介)とInstruction Manual(マニュアル)を追加(機能紹介は、文章が枠に収まらないページで、右側にスクロールバーを表示)
+    ・起動時、画面の配置が決まってからウィンドウを表示するよう変更(起動直後に、ウィンドウの大きさや部品の位置が動いて見えていたのを修正)
+    ・メニューバーを、ファイル / コマンド / 表示 / 接続 / 操作 / ツール / 設定 / ヘルプ の8つに再構築(Alt + ( ) の中のキー で、キーボードから開ける。タブやボタンにある操作も、メニューから選べる)
+    ・キーボードでの手動操作で、Alt キーを押している間のキーをゲーム機に送らないよう変更(Alt + キー でメニューを開くため)
+    ・メニューを操作している間(Alt + キー で開いた後に、Alt を離して押す矢印キーや Enter など)のキーも、ゲーム機に送らないよう変更(Windowsのみ)
+    ・デフォルト以外のテーマでも、メニューを開いている間の左右の矢印キーで、隣のメニューに移るよう変更(Windowsのみ。Alt + キー で開いたときは、いちばん上の項目を選んだ状態にする)
+    ・Pokemon Home 連携の機能を削除
+  ・機能追加/変更(カメラ・音声)
+    ・Capture Sizeに720x480と1920x1080を追加し、Show Sizeの候補をCapture Sizeに合わせて切り替えるよう変更
+    ・Capture Sizeに400x480(縦長。400x240の上画面の下に、320x240の下画面が並ぶ映像向け)を追加
+    ・Capture Sizeに256x384(縦長。上画面と下画面が縦に並ぶ映像向け)を追加
+    ・MJPG(圧縮形式)での取り込みを追加
+    ・他のアプリケーションのウィンドウを、カメラの代わりに取り込む機能を追加(Windowsのみ。CameraタブのWindowsにチェックを入れると、Deviceの候補に Window: で始まる候補が出る。OBSの仮想カメラなしでビューアーの画面を取り込める)
+    ・カメラの読み取りを専用スレッドで行うよう変更(画面表示とコマンド実行が取り合わないようにする)
+    ・Audioタブを追加(キャプチャーボードの音声の取り込み・再生。sounddeviceが必要。requirements.txt に追加)
+    ・Maskタブを追加(プレビューの一部を長方形・楕円で目隠し。Captureの画像への描き込み、名前を付けた保存・読み込みに対応)
+    ・Touch Screenタブを追加(タッチスクリーンの範囲を数値で設定)
+  ・機能追加/変更(コントローラー・シリアル)
+    ・FTDI(FT232H)で直結するDS用基板のData Format(DS FT (Rev1)〜(Rev3))を追加(ftd2xxが必要。起動時に --ds_ft を付けた場合のみ表示)
+    ・Data FormatにNX(NX Macro Controllerの形式。CH552-SERIALなどが対応)を追加(右スティックと、Switchへのキーボード入力の関数に対応)
+    ・シリアルモニターを追加(Outputの Page 3 の後ろの Serial タブ。送ったデータを、Show Serialのチェックに関係なく、[時刻][Data Formatの名前] 値 の形で表示。Outputへの表示は、これまでどおり、チェックを入れている間のみ)
+    ・Data Formatの並び順を変更(Default / NX / Qingpi / 3DS Controller(FW:x.4-) / 3DS Controller(FW:-x.3) / DS FT (Rev3) / (Rev2) / (Rev1))
+    ・Software-Controllerのレイアウトを追加(Switch (Joy-Con) / Switch (Pro Controller) / 3DS / DS / GameCube。タッチスクリーンのあり・なしを選択可)
+    ・Controller Simulatorで、レイアウトの切り替えと実寸のタッチスクリーン操作に対応
+    ・コントローラー設定(Software-Controller・Controller Simulatorの本体の色)を追加
+    ・PCに接続したコントローラーで、複数の種類のコントローラーに対応(ボタンの割り当てを画面の案内に沿って作成)
+    ・Record Pro ControllerをRecordボタンに変更し、キーボード・画面上のコントローラー・マウス・タッチの操作も記録するよう変更
+    ・キーボード・マウス・コントローラー・コマンドを同時に操作した場合に、入力を優先度に従って合成するよう変更
+    ・キーコンフィグをゲーム機(Switch / 3DS / DS / GameCube)ごとに設定できるよう変更し、終了後も保存するよう変更
+    ・複数起動したウィンドウをまとめて見る補助ツール(モニター)を追加(ExecutePokeConMonitor.bat / python Monitor.py。--monitor を付けて起動したウィンドウの、実行中のコマンド・Output・カメラの映像を、最大12個まで並べて表示。再生・一時停止・停止と、ウィンドウを最前面に表示する操作。All Start / All Stopで、つながっているすべてのウィンドウのコマンドを開始 / 停止。枠の数・枠ごとのプロファイル・映像の更新回数(2〜30fps)・テーマを記憶。つながっている枠は、そのウィンドウのテーマの配色で表示。メニューの ヘルプ から、補助ツールのInstruction ManualとLICENSEを表示)
+    ・Keyboardウィンドウを追加(Software-ControllerとController Simulatorの右下のKeyboardボタン、またはメニューの 操作 > Keyboard を開く。Switchのソフトウェアキーボードと同じ並びのキーで、Switchのキーボード画面に文字を入力。かな・カナはローマ字に直して送信し、Switch側の入力モード(かな / カナ / 英字)を自動で切り替える。テキスト入力タブでは、ひらがな・カタカナ・英数字が混ざった文字列を、Enterでまとめて送信)
+  ・機能追加/変更(コマンド)
+    ・Commandの見出しから、名前・更新日時での並び替えと名前の検索を行う機能を追加
+    ・コマンドの並び順に、使用頻度(多い順 / 少ない順)を追加(コマンドを開始した回数。NAMEとファイルの名前・フォルダーが同じであれば、中身を書き換えても同じコマンドとして数える。プロファイルに関係なく、複数起動のときもまとめて数える。Web版にも対応)
+    ・Tagsの見出しで、入力した文字を含むタグに自動でチェックを入れる機能を追加
+    ・Outputに Log タブを追加(Serial タブの後ろ。コンソールに出ているログと同じ内容を表示。DEBUG / WARNING / ERROR は文字の色を変える。Levelで、表示するレベルを絞り込める(プロファイルごとに保存)。タブを開いている間だけ画面を更新する)
+    ・出力画面(Page 1～3 / Serial / Log)に、文字の検索を追加(Ctrl+F、または右クリックの Find...。一致した所に色を付け、Enter / Shift+Enter で前後に移動。大文字と小文字は、初めは区別せず、「Aa」のボタンで切り替える)
+    ・Ctrlを押している間のキーを、キーボードでの手動操作として扱わないよう変更(Altと同じ扱い。Ctrl + F / Ctrl + C などで、エラーのログが出ていたのを修正)
+    ・実行リスト(コマンドの連続実行)を追加(コマンド > 実行リスト (連続実行)...。保存したリストは、Pythonの一覧に「名前 (実行リスト)」として並び、ふつうのコマンドと同じように実行できる。行ごとの回数と制限時間、コマンドの間の待ち時間、リスト全体の繰り返し、エラーのときの動きを設定できる)
+    ・開始と停止の予約を追加(コマンド > 開始と停止の予約...。時刻、または分で、コマンドの開始と停止を予約する。予約した時刻にPCがスリープしていると動作しないので、予約するときに警告を出す)
+    ・PCがスリープから戻ったとき、機器への送信に続けて失敗したときに、実行中のコマンドを止めるよう変更(Outputに理由を表示。Web版にも対応)
+    ・Outputに Note タブを追加(Log タブの後ろ。自由に書き込めるメモ。プロファイルごとに自動で保存する。文字の検索も使える)
+    ・メニューの 操作 に「すべての入力を離す」を追加(押したまま・倒したままになっている入力を、すべて離す。コマンドの実行中は、動きに影響することがある旨を確かめてから行う)
+    ・メニューの ヘルプ に「環境の診断」を追加(バージョン、必要なライブラリ、フォルダーへの書き込み、シリアル、カメラなどを調べて、一覧で表示する。OneDriveの中で動かしている場合は、注意を出す。フォルダーの場所を隠してコピーする「マスクしてコピー」付き)。内容が重なる「Version確認」は、廃止
+    ・ログのファイルの名前に、プロファイルの名前を追加(log_プロファイル名_日時.log。以前は log_日時.log)
+    ・タグの編集画面に、タグの一括変更(名前の変更・削除。表示している種類のすべてのコマンドが対象)を追加(Web版にも対応)
+    ・入力欄に文字を打っている間は、キーボードでの手動操作を止めるよう変更(打った文字を、ゲーム機に送らない)
+    ・キーを受け取って動く部品(タブの並び、コンボボックス、コマンドの一覧、つまみ、数を入れる欄、ラジオボタン、スクロールバー)を選んでいる間も、キーボードでの手動操作を止めるよう変更(矢印キーで、タブや項目が切り替わるため。ボタン・出力画面・プレビューなどをクリックすると戻る)
+    ・長い待機(wait / short_wait、press・hold などの待ち)の途中でStopを押したときに、待ち終わるのを待たずに止まるよう変更(0.2秒を超える待機が対象。止めないときの待つ時間と入力の順番は、これまでと同じ)
+    ・新しいスクリプトのひな形を作る機能を追加(メニューの ツール > 新しい自動化スクリプトをつくる。スクリプト名・作成者名・ファイル名・格納場所・BridgeFunctionsの使用・画像保存先を入力すると、Commands/PythonCommandsに.pyファイルを作成してエディタで開く。格納場所にREADME.mdとLicense.txtのひな形も作成。既存のファイルは上書きしない)
+    ・タグの編集画面を追加(Commandsタブのタグの絵のボタン、またはメニューの コマンド > タグを編集...。コマンドのファイルを開かずに、TAGSを足す・外す。保存でまとめて書き込む。開いた後に書き換えられたファイルは上書きせず、書き込めないファイル・単純な一覧でないTAGSとあわせて警告を表示)
+    ・Historyの並び替えと削除の機能を追加
+    ・コマンドのファイルを右クリックから開く機能を追加(Open file / Open with... / Open folder / Copy path)
+    ・一時停止(Pause)時に、止まった位置(呼び出しの順・ファイルへのリンク)と変数を表示する機能を追加
+    ・press実行中はボタンを離してから、画像認識は判定する前に一時停止するよう変更
+    ・Mcuコマンド実行中はPauseを押せないよう変更
+    ・コマンドの再読み込み時に、依存しているコマンドフォルダ内のモジュールも再読み込みするよう変更
+    ・Discordの通知先を、名前を付けて複数登録できるよう変更(設定 > Discord の通知先...。DISCORD_WEBHOOKは既定の通知先として必ず作成)
+    ・discord_text / discord_image に name 引数を追加し(keysと同じ役割)、送信の成否を返すよう変更。通知先の名前を index より優先し、index は0始まりの登録順に変更
+    ・getInterframeDiff(フレーム間差分)を、コマンドの関数として追加(Poke-Controller Modifiedとの互換のため)
+    ・bridge_functionsをver.0.0.3に更新(Modified版でのダイアログのキャンセル時の動作・crop_fmtの変換、bf_show_informationsの修正)
+    ・Switchへのキーボード入力の関数を追加(KeyBoard_Init / TypeString / TypeStringln / TypeKey / PressKey / ReleaseKey。送れるのは半角の文字とキー。キーボード入力に対応したファームウェアが必要で、CH552-SERIALの場合はv2.4以上を使用すること)
+  ・機能追加/変更(プロファイル)
+    ・--profileを付けずに起動した場合に、プロファイルを選ぶ画面を表示する機能を追加
+    ・--autoで起動した場合に、起動されていないプロファイルを自動で選ぶ機能を追加(優先順はprofiles/priority.txt)
+    ・同じプロファイルで2つ目以降に起動したウィンドウでは、設定を保存しないよう変更
+    ・プロファイル名に使える文字を、アルファベット・数字・「-」・「_」に制限
+  ・機能追加/変更(通知)
+    ・Notification タブの Discord Notification に、通知に付ける画像の選択(画面 / ウィンドウ全体)を追加(Test・Start・End と、Main Panel の Discord ボタンに反映。コマンドの discord_image が送る画像には影響しない。プロファイルごとに保存)
+    ・Discord の開始時・終了時の通知(Start / End)に、選んだ画像を付けるよう変更(以前は文字だけ)
+    ・メニューの ツール に「Discord にウィンドウ全体を送信」を追加
+  ・環境の用意と起動
+    ・uv を使う起動方法を追加(PokeConExtension.bat。Python のインストールは不要。uv が Python 3.13 と必要なライブラリを、リポジトリのフォルダの中の .venv に用意する。uv がなければ、確認のうえ公式サイトからインストールする)
+    ・以前からの環境(PC の Python と pip)で起動したときに、uv の環境へ移行するかを確認する機能を追加(足していたライブラリを一覧から選んで引き継ぐ。移行した後は、以前からの bat でも .venv の Python で起動する。ver.0.3.0 以降は、uv の環境だけを対象にする)
+    ・.venv に入っているライブラリと版を表示する PokeConExtension_ListLibraries.bat、足したライブラリを外す PokeConExtension_RemoveLibrary.bat を追加
+    ・.venv にライブラリを足す PokeConExtension_AddLibrary.bat、補助ツール(モニター)を起動する PokeConExtension_Monitor.bat を追加
+    ・uv の環境でプロファイルを追加するときに、起動用の bat の形(uv 向け / 従来)を選べるよう変更
+    ・インストール用の PokeConExtension_Install.bat を追加(この1ファイルだけで導入できる。最新の Release を取得して展開する。Python と git は不要)
+    ・環境の診断に、uv の環境(.venv)で動いているかの表示を追加
+    ・pyproject.toml / uv.lock / .python-version を追加(ライブラリの版を固定。requirements.txt は、ver.0.2.x の間は残す)
+    ・環境の用意と起動の処理を、本体と切り離して bootstrap フォルダに追加
+  ・更新
+    ・更新の確認を、GitHub の Release を基準にするよう変更(最新の Release が、手元のバージョンより新しいときだけ「更新あり」。git がなくても確認できる)
+    ・git を使わない更新を追加(ZIP で取得した場合など。Release の ZIP を取得し、版の間で変わったファイルだけを入れ替える。手元で変更したファイルは old フォルダに退避。利用者のスクリプト・設定・画像は変更しない)
+    ・更新に失敗しても「更新が完了しました。」と表示されることがある問題を修正
+  ・バグ修正
+    ・スクリプトを初めて読み込むとき(重いライブラリを使うスクリプトでは、Start を押してから数秒〜十数秒かかる)に、何も起きていないように見えていたのを修正(読み込みの間、Start ボタンを Loading... にし、Output に知らせを表示。Start ボタンの幅を、この文字が収まるよう少し広げた)
+    ・サンプルのスクリプトの書き方を整理(使っていない変数への代入、対象を絞らない except、紛らわしい変数名 l を修正。動作は変更なし)
+    ・ログのファイルに、通信先の URL(Discord の Webhook の URL を含む)が書かれていた問題を修正(通信のライブラリの詳細なログを出さないよう変更。以前のログのファイルを人に渡すときは、注意してください)
+    ・シリアルポートを開けなかったときに、試すこと(機器の抜き差しと、Scan Device・Reload Port)を案内する文章を表示するよう変更
+    ・requirements.txt から windows-capture-device-list を削除(配布されているファイルに本体が入っておらず、読み込めなかった。カメラの名前を取得できないときは、理由を表示して、カメラの番号を入力する欄に切り替える)
+    ・GitPython や git が入っていない環境で、起動に失敗する問題を修正(更新の確認が「確認できませんでした」になるだけで、起動できる。更新の確認の処理を services/update_check.py にまとめた)
+    ・終了時に、接続したコントローラーの処理が止まらないことがある問題を修正
+    ・キーコンフィグの画面を開くと、メイン画面の背景が白くなる問題を修正
+    ・キーコンフィグの設定が保存されない問題を修正
+    ・十字キーの左右の矢印の形を修正
+    ・別スレッド(コマンド実行スレッド)からGUIを操作することで、動作が不安定になる問題を修正
+    ・holdで、Button.BとHat.RIGHTのように数値が同じになるボタンと十字キーを同時に長押しできない問題を修正(PR #6の報告)
+    ・isContainTemplate_maxで、マスク画像のリストを渡すと、数が合っていても-1が返る問題を修正
+    ・GPUでのテンプレートマッチングがエラーになる問題を修正
+    ・isContainedImageで、crop_templateを省略すると、見つかったときにエラーになる問題を修正
+    ・画像の保存に失敗しても「capture succeeded」と表示される問題を修正(Capture Failedと表示)。ファイル名を指定しないsaveImageがエラーになる問題を修正
+    ・camera.saveCaptureで、imgを渡しても、cropを指定しないとカメラの画像が保存される問題を修正
+    ・ポートを名前で開くと、ボーレートの指定が使われず9600になる問題を修正。ポートを開いていない状態で閉じるとエラーになる問題を修正
+    ・Mcuコマンドなどで、ダイアログをキャンセルするとエラーになる問題を修正
+    ・Socket通信で、change_portで変えたポート番号が接続に使われない問題を修正
+    ・MQTT通信が、paho-mqtt 2.xで使えない問題を修正。通信に失敗したときに、原因に関わらず「paho-mqttが入っていない」と表示される問題を修正
+    ・LINE/Discordの通知で、確認の結果の表示がエラーになることがある問題、送信の後にgetRateLimitがエラーになる問題を修正
+    ・設定 > LINEの通知先、ファイル > プロファイルを追加 で、Cancelするとエラーになる問題を修正
+    ・Version確認・更新履歴・LICENSEが、起動したフォルダによっては開けない問題を修正(開けない場合に空のウィンドウが残る問題も修正)
+    ・質問テンプレートの「プログラム名」に、余分な " が入る問題を修正
+    ・Capturesフォルダ・コマンドのフォルダを開くボタンが、起動したフォルダによっては別の場所を開く問題を修正
+    ・COM番号のないシリアルポートがあると、ポートの一覧を取得できない問題を修正
+    ・設定ファイルが空のときに、通知・通信の設定の読み込みがエラーになる問題を修正
+    ・logフォルダがないと、ログの出力を始められない問題を修正
+    ・更新時に退避するファイルが、同じ名前の別のファイルで上書きされることがある問題を修正
+    ・inputEndに unset_Touchscreen=False を付けると、離す対象にタッチを渡しても離れない問題を修正
+    ・SendFormat.setAnyDirectionで、x_reverse / y_reverse を付けたときに、スティックの変化の判定が逆になる問題を修正
+    ・Sender.show_inputで、スティックの印がボタンとして表示される問題、倒しているスティックの名前が食い違う問題を修正
+    ・プレビューで範囲を選んだ直後(範囲のキャプチャー、タッチスクリーンの範囲の指定)に、画面が0.25秒止まる問題を修正
+    ・ファイル > 終了 が、ウィンドウの×ボタンと違う処理になっていた問題を修正(確認を表示し、記録・コントローラー・音声を止め、画面の今の設定を保存してから終了)
+    ・ホールドしていないボタンをholdEndした場合に、エラーで止まらず警告を表示するよう変更
+    ・Software-Controllerを出力画面の下に置いているとき、Widget ModeをOutput#1 Only / Output#2 OnlyからALLに戻すと、Software-Controllerが表示されない問題を修正
+    ・Mac環境で、キャプチャデバイスの個数を正しく取得できない問題を修正(Issue #1)
+    ・Linux環境で、Windowsと同じくメイン画面を選択している間だけキーボード操作を受け付けるよう変更(pynput 1.7.7以降が必要。Issue #3)
+    ・Mac環境で、起動中にキー入力の受け付けを開始・停止しないよう変更(Keyboardのチェックは次回の起動時に反映。Issue #3)
+    ・画像認識を呼ぶたび・コマンドを開始するたびにログのハンドラが増え続け、長時間動かすとメモリ使用量が増える問題を修正
+    ・シリアルを開けなかったときに、ログの出力でエラーになり、原因がログに残らない問題を修正(Outputにも、開けなかった原因を表示)
+  ・Window.pyを、タブ・機能ごとのファイル(SerialController/ui)に分割(処理の内容は変更なし)
+    ・Window.pyは、起動時の組み立て・設定の読み込みと保存・終了の処理のみを持つ
+    ・Window.pyや、サンプルのスクリプトに残っていた、使っていないimportを削除
+  ・送るデータの形式(Data Format)ごとの処理を、送信方式(SerialController/Commands/transport)に整理(送るデータの内容は変更なし)
+    ・形式を追加するときは、クラスを1つ作って登録するだけで、画面の一覧・ボーレート・送信に反映される
+    ・形式ごとに決まった入力を行い、送るデータがこれまでと変わらないことを確かめるテスト(tests/test_transport_golden.py)を追加
+  ・スクリプトから使う関数・クラスの名前と引数、ボタンなどの値が、これまでと変わらないことを確かめるテスト(tests/test_public_api.py)を追加
+  ・GitHub上で、pushとPull Requestのたびに検査(ruff)とテスト(SerialController/tests)を自動で実行する設定(.github/workflows/tests.yml)を追加
+    ・改行コードの扱い(.gitattributes)と、検査・整形の設定(ruff.toml)を追加
+    ・Issueの報告用のひな形(不具合の報告 / 要望・提案)と、Pull Requestのひな形を追加
+    ・コマンドを作る人向けの文書(docs/command-guide.md)、開発に参加する人向けの文書(CONTRIBUTING.md、docs/ARCHITECTURE.md)を追加
+    ・Instruction Manualのスクリプトの書き方の説明を、別のファイル(SerialController/assets/manual/scripting.md)に分離(表示される内容は変更なし。GitHub上でも読める)
+    ・READMEに、Webブラウザ版の起動方法と、検査・テストの手順を追記。Webブラウザ版の起動用バッチファイル(ExecutePokeConModified-Extension_web.bat)を追加
+  ・コマンドの読み込みと実行の管理を、画面(tkinter)に依存しないSerialController/services/command_service.pyに分離
+  ・設定の読み書きを、画面(tkinter)に依存しないSerialController/services/settings_store.pyに分離
+  ・シリアルの接続の管理(ポートの一覧、接続と切断、送るデータの形式)を、SerialController/services/serial_service.pyに分離
+  ・カメラ・音声デバイスの一覧の取得と並べ方を、SerialController/services/device_service.pyに分離
+  ・出力画面(Output#1 / #2)への書き込みの受け渡しを、SerialController/services/output_service.pyに分離
+  ・コマンドの基底クラス(Commands/CommandBase.py)から画面(tkinter)への直接の依存を除去
+    ・ダイアログの表示をSerialController/ui/dialogue.pyに、設定の保存・読み込みをSerialController/services/dialogue_store.pyに分離
+  ・画面のファイル(SerialController/ui)に残っていた、画面に依存しない処理をSerialController/servicesに分離
+    ・コマンドの一覧の絞り込み・並び替えと履歴(command_catalog.py)、範囲と大きさの計算(geometry.py)、操作記録の開始と終了(record_service.py)
+    ・画面に依存しない層がtkinterを読み込まないことを検査するテスト(tests/test_layering.py)を追加
+  ・Webブラウザ版の画面を追加(試作。python Window.py --ui web で起動。既定はこれまでのウィンドウ)
+    ・右側のパネルを下に置いたときの、プレビューと操作の部品の間に、マウスで動かせる仕切り線を追加
+    ・ポート番号は、指定しない場合は 8765 から順に空いている番号を使用(複数のプロファイルを同時に起動できる。--port で指定も可能)
+    ・Instruction Manual(マニュアル)と機能紹介は、Webブラウザ版用のものを表示(機能紹介の「今後は表示しない」も、ウィンドウの画面とは別に保存)
+    ・ウィンドウの画面のInstruction Manualに、Webブラウザ版として起動する方法を追記
+    ・見出しに「ツール」のメニューを追加し、タグの編集・新しい自動化スクリプトをつくる・Keyboard・モニターの画面を、Webブラウザ版にも追加(操作できる画面だけが使える。モニターの枠の数・割り当て・映像の更新回数は、ブラウザに保存)
+    ・設定のいちばん上に Status の欄を追加(今つながっている機器と、実行中のコマンド。ウィンドウの画面の Status タブと同じ内容)
+    ・Webブラウザ版も、--monitor を付けて起動すると、補助ツール(モニター)から見られるよう変更(再生で始まるのは、操作できるブラウザが一覧で選んでいるコマンド。前面に表示は、できない)
+      ・画面を持たない中身を SerialController/services/tag_session.py / keyboard_session.py / monitor_relay.py に、補助ツールとのつなぎ役を SerialController/web/monitor_link.py に配置
+    ・プレビュー、コマンドの開始/停止/一時停止、実行履歴(History)、出力画面、ダイアログ、認識位置の表示、手動操作(キーボード・コントローラー・プレビュー上のマウス)、操作記録に対応
+    ・設定(Camera / Serial / Audio / Notification / Others)の変更に対応
+      ・設定の変更と候補の一覧を SerialController/services/settings_control.py に、音声の取り込みの管理を SerialController/services/audio_service.py に配置
+    ・Software-Controller(画面上のコントローラー)に対応。レイアウトは、これまでのウィンドウの画面と同じ定義(ControllerLayouts.py)を使う
+      ・ControllerLayouts.py は、画面に表示するときだけ tkinter を読み込むよう変更(レイアウトの内容は describe_layout() で取り出せる)
+      ・入力の処理を SerialController/services/software_controller.py に配置
+    ・ショートカット、目隠し(Mask)の編集、タッチスクリーンの範囲の設定、キーコンフィグ、コントローラーの本体の色、通知先(Discord / LINE)の設定に対応
+      ・処理を SerialController/services/editor_service.py に配置
+      ・Discordの設定ファイルの読み書き(load_setting / save_setting)を DiscordSettingWindow.py から DiscordNotify.py に移動
+    ・スクリーンショットの保存(Capture、範囲を指定して保存、名前を付けて保存)、座標と色の確認、保存先のフォルダを開く、LINE / Discord への画像の送信に対応
+    ・出力ページ(Page 1～3)、キャプチャー画像のリンクのメニュー、Output#1 の高さの変更に対応
+    ・出力画面に Serial タブ(機器へ送ったデータ)と Log タブ(ログ。レベルごとの色、レベルでの絞り込み)、Note タブ(メモ)、文字の検索(Ctrl+F / 🔍。「Aa」で大文字と小文字の区別を切り替える)を追加
+    ・手動操作に「すべての入力を離す」を追加(コマンドの実行中は、確かめてから行う)。ヘルプの「Version確認」を「環境の診断」に変更
+    ・コマンドの一覧: 複数のタグでの絞り込み、更新日時での並び替え、右クリックのメニュー(ファイルを開く・パスのコピー・Shortcut に設定・履歴の削除)、F5 / F6 に対応
+    ・表示メニュー(テーマ、パネルの位置、表示する部品、ミニ画面、画面のリセット、Controller Simulator)とヘルプメニュー(Instruction Manual、機能紹介、更新履歴、質問テンプレート、Version確認、アップデート確認、LICENSE)を追加
+    ・設定: Realtime、接続したコントローラーの Device、音量のレベル、LINE / Discord の接続の確認、本体の色のプリセットの書き出し、プロファイルの追加に対応
+      ・処理を SerialController/services/tools_service.py に配置
+    ・表示メニューに「コマンドの一覧と Software-Controller の位置を入れ替える」を追加
+    ・Output#1 と #2 の境目の線をドラッグして、Output#1 の高さを変えられるよう変更(ダブルクリックで元に戻す)
+    ・設定の並びを変更(メニュー > コマンド にあった Discord / LINE / Profile を下に配置)、Serial に Scan Device を追加
+    ・パネルの位置を「下」にしたときに部品が重なる問題、Instruction Manual・機能紹介の枠の大きさが項目ごとに変わる問題を修正
+    ・画面の右上に「終了」ボタンを追加(設定を保存してから終了する)
+    ・プレビューの大きさを変えられるよう変更
+      ・プレビューの列と右の列の境目の線をドラッグ(ダブルクリックで元に戻す)。プレビューは列の幅いっぱいに、縦横比を保って表示する
+      ・表示メニューの「プレビューの大きさ」(列の幅に合わせる / 480～1920 の幅)と「プレビューの画質」(送る映像の幅の上限。480～1920 / 取り込みサイズのまま)
+      ・設定 > Camera の Size の表示名を Capture Size に変更
+    ・設定を、画面の右上の「設定」ボタン(「表示」の左)で開く形に変更(画面の右側に開き、プレビューを見ながら変えられる)
+    ・パネルの位置が「下」のときに、下のパネルの左右の幅を変える境目の線を追加(ダブルクリックで元に戻す)
+    ・接続したコントローラーのボタンの割り当ての設定(設定 > Controller)に対応
+      ・手順の進行を SerialController/services/controller_setup_service.py に配置
+      ・ControllerSetup.py のうち、入力の検出と割り当ての管理を SerialController/Commands/ControllerSetupSession.py に分離
+    ・Windows 通知のテスト(設定 > Notification)、History の並び順の切り替え、起動時の機能紹介の表示(「今後は表示しない」)に対応
+      ・Introduction.py のうち、紹介文の読み込みと「今後は表示しない」の保存を SerialController/services/introduction_store.py に分離
+    ・追加で必要なパッケージは requirements-web.txt (fastapi, uvicorn, websockets)
+    ・アプリ本体の組み立てを SerialController/services/app_core.py に、画面を SerialController/web に配置
+    ・テスト(SerialController/tests)を追加
+  ・Window.py/GuiAssets.py/Menubar.py/Settings.py更新
+    ・上記の画面関連の機能追加に伴う修正を実施
+  ・Camera.py更新
+    ・カメラの読み取りの専用スレッド化、取り込みサイズ・MJPGの追加、プレビューの明るさの変更に伴う修正を実施
+  ・Commands/Keys.py/Sender.py/ProController.py更新
+    ・FTDI用Data Formatの追加、入力の合成、複数の種類のコントローラーへの対応に伴う修正を実施
+  ・Commands/CommandBase.py/PythonCommandBase.py更新
+    ・一時停止の機能追加、キーボード入力の関数追加、出力ページの指定、別スレッドからのGUI操作の修正に伴う修正を実施
+  ・CommandLoader.py更新
+    ・コマンドの読み込み・再読み込みの修正を実施
+  ・KeyConfig.py/Keyboard.py更新
+    ・ゲーム機ごとのキーコンフィグに伴う修正を実施
+  ・PokeConShowInfo.py/Utility.py/UnitCommand.py更新
+    ・Version確認のコピー、ファイルを開く機能の追加に伴う修正を実施
+  ・Audio.py/AudioProcessing.py追加
+    ・音声の取り込み・再生のために追加
+  ・ControllerLayouts.py/ControllerWindow.py/ControllerColors.py/ControllerColorWindow.py追加
+    ・Software-Controller・Controller Simulatorのレイアウトと本体の色のために追加
+  ・ControllerSetup.py/DeviceMatch.py/Commands/ControllerProfile.py/ControllerProfiles追加
+    ・複数の種類のコントローラーへの対応と、ボタンの割り当ての作成のために追加
+  ・Commands/FtdiPort.py追加
+    ・FTDI直結のDS用基板への送信のために追加
+  ・Commands/InputRecorder.py追加
+    ・操作の記録のために追加
+  ・Commands/SwitchKeyboard.py/Commands/PythonCommands/Samples/Keyboard_sample.py追加
+    ・Switchへのキーボード入力のために追加
+  ・Mask.py/KeyMap.py/Profile.py/Theme.py/OutputLinks.py/UiDispatcher.py追加
+    ・目隠し、ゲーム機ごとのキーコンフィグ、プロファイル、テーマ、Output上のリンク、別スレッドからのGUI操作のために追加
+  ・DiscordSettingWindow.py追加/DiscordNotify.py更新
+    ・Discordの通知先の複数登録のために追加・修正
+  ・Introduction.py/Manual.py/assets追加
+    ・機能紹介とInstruction Manualのために追加
+  ・tools/make_introduction_images.py追加
+    ・機能紹介の画像の作成のために追加
+  ・README更新
+    ・FTDI直結のDS基板と、キャプチャーボードの音声を使う場合の説明を追加
+
 ■ver.0.1.9
   ・3DS Controllerにおけるタッチスクリーン操作に対応
     ・シリアルデータにタッチスクリーン制御用データを追加

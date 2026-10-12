@@ -1,29 +1,46 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 from time import sleep
+from typing import TYPE_CHECKING, Callable
 
 from . import CommandBase
-from .Keys import Button, Hat, KeyPress
+from .Keys import Button, Hat, InputSource, KeyPress
+
+if TYPE_CHECKING:
+    from .Keys import Direction
+    from .Sender import Sender
 
 
 # Sigle button command
 class UnitCommand(CommandBase.Command):
-    def __init__(self):
+    """
+    ボタンや十字キーを 1 回押すだけのコマンドの基底クラス
+    (Switch Controller Simulator の画面のボタンが使う。下に、ボタンごとの子クラスがある)
+    """
+
+    def __init__(self) -> None:
+        """実行していない状態で作る(入力を送る KeyPress は、start で作る)"""
         super().__init__()
 
-    def start(self, ser, postProcess=None):
+    def start(self, ser: Sender, postProcess: Callable[[], None] | None = None) -> None:
+        """入力を送る KeyPress を作る(子クラスは、続けて自分のボタンを押す。postProcess は使わない)"""
         self.isRunning = True
-        self.key = KeyPress(ser)
+        # Switch Controller Simulatorのボタン操作で使われるため、マウス操作の入力源とする
+        self.key = KeyPress(ser, source=InputSource.MOUSE)
 
-    def end(self, ser):
+    def end(self, ser: Sender) -> None:
+        """何もしない(入力は、start の中で離し終えている)"""
         pass
 
     # do nothing at wait time(s)
-    def wait(self, wait):
+    def wait(self, wait: float) -> None:
+        """wait 秒、何もせずに待つ"""
         sleep(wait)
 
-    def press(self, btn):
+    def press(self, btn: Button | Hat | Direction) -> None:
+        """btn を 0.1 秒押して離し、コマンドを終わった状態にする(KeyPress も手放す)"""
         self.key.input([btn])
         self.wait(0.1)
         self.key.inputEnd([btn])
@@ -32,222 +49,318 @@ class UnitCommand(CommandBase.Command):
 
 
 class A(UnitCommand):
-    def __init__(self):
+    """A ボタンを 0.1 秒押して離すコマンド"""
+
+    def __init__(self) -> None:
+        """実行していない状態で作る"""
         super().__init__()
 
-    def start(self, ser):
+    def start(self, ser: Sender) -> None:
+        """A ボタンを 0.1 秒押して、離す"""
         super().start(ser)
         self.press(Button.A)
 
 
 class B(UnitCommand):
-    def __init__(self):
+    """B ボタンを 0.1 秒押して離すコマンド"""
+
+    def __init__(self) -> None:
+        """実行していない状態で作る"""
         super().__init__()
 
-    def start(self, ser):
+    def start(self, ser: Sender) -> None:
+        """B ボタンを 0.1 秒押して、離す"""
         super().start(ser)
         self.press(Button.B)
 
 
 class X(UnitCommand):
-    def __init__(self):
+    """X ボタンを 0.1 秒押して離すコマンド"""
+
+    def __init__(self) -> None:
+        """実行していない状態で作る"""
         super().__init__()
 
-    def start(self, ser):
+    def start(self, ser: Sender) -> None:
+        """X ボタンを 0.1 秒押して、離す"""
         super().start(ser)
         self.press(Button.X)
 
 
 class Y(UnitCommand):
-    def __init__(self):
+    """Y ボタンを 0.1 秒押して離すコマンド"""
+
+    def __init__(self) -> None:
+        """実行していない状態で作る"""
         super().__init__()
 
-    def start(self, ser):
+    def start(self, ser: Sender) -> None:
+        """Y ボタンを 0.1 秒押して、離す"""
         super().start(ser)
         self.press(Button.Y)
 
 
 class L(UnitCommand):
-    def __init__(self):
+    """L ボタンを 0.1 秒押して離すコマンド"""
+
+    def __init__(self) -> None:
+        """実行していない状態で作る"""
         super().__init__()
 
-    def start(self, ser):
+    def start(self, ser: Sender) -> None:
+        """L ボタンを 0.1 秒押して、離す"""
         super().start(ser)
         self.press(Button.L)
 
 
 class R(UnitCommand):
-    def __init__(self):
+    """R ボタンを 0.1 秒押して離すコマンド"""
+
+    def __init__(self) -> None:
+        """実行していない状態で作る"""
         super().__init__()
 
-    def start(self, ser):
+    def start(self, ser: Sender) -> None:
+        """R ボタンを 0.1 秒押して、離す"""
         super().start(ser)
         self.press(Button.R)
 
 
 class ZL(UnitCommand):
-    def __init__(self):
+    """ZL ボタンを 0.1 秒押して離すコマンド"""
+
+    def __init__(self) -> None:
+        """実行していない状態で作る"""
         super().__init__()
 
-    def start(self, ser):
+    def start(self, ser: Sender) -> None:
+        """ZL ボタンを 0.1 秒押して、離す"""
         super().start(ser)
         self.press(Button.ZL)
 
 
 class ZR(UnitCommand):
-    def __init__(self):
+    """ZR ボタンを 0.1 秒押して離すコマンド"""
+
+    def __init__(self) -> None:
+        """実行していない状態で作る"""
         super().__init__()
 
-    def start(self, ser):
+    def start(self, ser: Sender) -> None:
+        """ZR ボタンを 0.1 秒押して、離す"""
         super().start(ser)
         self.press(Button.ZR)
 
 
 class MINUS(UnitCommand):
-    def __init__(self):
+    """MINUS ボタンを 0.1 秒押して離すコマンド"""
+
+    def __init__(self) -> None:
+        """実行していない状態で作る"""
         super().__init__()
 
-    def start(self, ser):
+    def start(self, ser: Sender) -> None:
+        """MINUS ボタンを 0.1 秒押して、離す"""
         super().start(ser)
         self.press(Button.MINUS)
 
 
 class PLUS(UnitCommand):
-    def __init__(self):
+    """PLUS ボタンを 0.1 秒押して離すコマンド"""
+
+    def __init__(self) -> None:
+        """実行していない状態で作る"""
         super().__init__()
 
-    def start(self, ser):
+    def start(self, ser: Sender) -> None:
+        """PLUS ボタンを 0.1 秒押して、離す"""
         super().start(ser)
         self.press(Button.PLUS)
 
 
 class LCLICK(UnitCommand):
-    def __init__(self):
+    """LCLICK ボタンを 0.1 秒押して離すコマンド"""
+
+    def __init__(self) -> None:
+        """実行していない状態で作る"""
         super().__init__()
 
-    def start(self, ser):
+    def start(self, ser: Sender) -> None:
+        """LCLICK ボタンを 0.1 秒押して、離す"""
         super().start(ser)
         self.press(Button.LCLICK)
 
 
 class RCLICK(UnitCommand):
-    def __init__(self):
+    """RCLICK ボタンを 0.1 秒押して離すコマンド"""
+
+    def __init__(self) -> None:
+        """実行していない状態で作る"""
         super().__init__()
 
-    def start(self, ser):
+    def start(self, ser: Sender) -> None:
+        """RCLICK ボタンを 0.1 秒押して、離す"""
         super().start(ser)
         self.press(Button.RCLICK)
 
 
 class HOME(UnitCommand):
-    def __init__(self):
+    """HOME ボタンを 0.1 秒押して離すコマンド"""
+
+    def __init__(self) -> None:
+        """実行していない状態で作る"""
         super().__init__()
 
-    def start(self, ser):
+    def start(self, ser: Sender) -> None:
+        """HOME ボタンを 0.1 秒押して、離す"""
         super().start(ser)
         self.press(Button.HOME)
 
 
 class CAPTURE(UnitCommand):
-    def __init__(self):
+    """CAPTURE ボタンを 0.1 秒押して離すコマンド"""
+
+    def __init__(self) -> None:
+        """実行していない状態で作る"""
         super().__init__()
 
-    def start(self, ser):
+    def start(self, ser: Sender) -> None:
+        """CAPTURE ボタンを 0.1 秒押して、離す"""
         super().start(ser)
         self.press(Button.CAPTURE)
 
 
 class UP(UnitCommand):
-    def __init__(self):
+    """十字キーの上を 0.1 秒押して離すコマンド"""
+
+    def __init__(self) -> None:
+        """実行していない状態で作る"""
         super().__init__()
 
-    def start(self, ser):
+    def start(self, ser: Sender) -> None:
+        """十字キーの上を 0.1 秒押して、離す(終わったら、コマンドを終わった状態にして、KeyPress を手放す)"""
         super().start(ser)
         self.key.input(Hat.TOP)
         self.wait(0.1)
         self.key.input(Hat.CENTER)
+        self.isRunning = False
         self.key = None
 
 
 class UP_RIGHT(UnitCommand):
-    def __init__(self):
+    """十字キーの右上を 0.1 秒押して離すコマンド"""
+
+    def __init__(self) -> None:
+        """実行していない状態で作る"""
         super().__init__()
 
-    def start(self, ser):
+    def start(self, ser: Sender) -> None:
+        """十字キーの右上を 0.1 秒押して、離す(終わったら、コマンドを終わった状態にして、KeyPress を手放す)"""
         super().start(ser)
         self.key.input(Hat.TOP_RIGHT)
         self.wait(0.1)
         self.key.input(Hat.CENTER)
+        self.isRunning = False
         self.key = None
 
 
 class RIGHT(UnitCommand):
-    def __init__(self):
+    """十字キーの右を 0.1 秒押して離すコマンド"""
+
+    def __init__(self) -> None:
+        """実行していない状態で作る"""
         super().__init__()
 
-    def start(self, ser):
+    def start(self, ser: Sender) -> None:
+        """十字キーの右を 0.1 秒押して、離す(終わったら、コマンドを終わった状態にして、KeyPress を手放す)"""
         super().start(ser)
         self.key.input(Hat.RIGHT)
         self.wait(0.1)
         self.key.input(Hat.CENTER)
+        self.isRunning = False
         self.key = None
 
 
 class DOWN_RIGHT(UnitCommand):
-    def __init__(self):
+    """十字キーの右下を 0.1 秒押して離すコマンド"""
+
+    def __init__(self) -> None:
+        """実行していない状態で作る"""
         super().__init__()
 
-    def start(self, ser):
+    def start(self, ser: Sender) -> None:
+        """十字キーの右下を 0.1 秒押して、離す(終わったら、コマンドを終わった状態にして、KeyPress を手放す)"""
         super().start(ser)
         self.key.input(Hat.BTM_RIGHT)
         self.wait(0.1)
         self.key.input(Hat.CENTER)
+        self.isRunning = False
         self.key = None
 
 
 class DOWN(UnitCommand):
-    def __init__(self):
+    """十字キーの下を 0.1 秒押して離すコマンド"""
+
+    def __init__(self) -> None:
+        """実行していない状態で作る"""
         super().__init__()
 
-    def start(self, ser):
+    def start(self, ser: Sender) -> None:
+        """十字キーの下を 0.1 秒押して、離す(終わったら、コマンドを終わった状態にして、KeyPress を手放す)"""
         super().start(ser)
         self.key.input(Hat.BTM)
         self.wait(0.1)
         self.key.input(Hat.CENTER)
+        self.isRunning = False
         self.key = None
 
 
 class DOWN_LEFT(UnitCommand):
-    def __init__(self):
+    """十字キーの左下を 0.1 秒押して離すコマンド"""
+
+    def __init__(self) -> None:
+        """実行していない状態で作る"""
         super().__init__()
 
-    def start(self, ser):
+    def start(self, ser: Sender) -> None:
+        """十字キーの左下を 0.1 秒押して、離す(終わったら、コマンドを終わった状態にして、KeyPress を手放す)"""
         super().start(ser)
         self.key.input(Hat.BTM_LEFT)
         self.wait(0.1)
         self.key.input(Hat.CENTER)
+        self.isRunning = False
         self.key = None
 
 
 class LEFT(UnitCommand):
-    def __init__(self):
+    """十字キーの左を 0.1 秒押して離すコマンド"""
+
+    def __init__(self) -> None:
+        """実行していない状態で作る"""
         super().__init__()
 
-    def start(self, ser):
+    def start(self, ser: Sender) -> None:
+        """十字キーの左を 0.1 秒押して、離す(終わったら、コマンドを終わった状態にして、KeyPress を手放す)"""
         super().start(ser)
         self.key.input(Hat.LEFT)
         self.wait(0.1)
         self.key.input(Hat.CENTER)
+        self.isRunning = False
         self.key = None
 
 
 class UP_LEFT(UnitCommand):
-    def __init__(self):
+    """十字キーの左上を 0.1 秒押して離すコマンド"""
+
+    def __init__(self) -> None:
+        """実行していない状態で作る"""
         super().__init__()
 
-    def start(self, ser):
+    def start(self, ser: Sender) -> None:
+        """十字キーの左上を 0.1 秒押して、離す(終わったら、コマンドを終わった状態にして、KeyPress を手放す)"""
         super().start(ser)
         self.key.input(Hat.TOP_LEFT)
         self.wait(0.1)
         self.key.input(Hat.CENTER)
+        self.isRunning = False
         self.key = None

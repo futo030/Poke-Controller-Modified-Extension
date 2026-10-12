@@ -70,7 +70,7 @@ def _test_is_contain_template(command: ImageProcPythonCommand):
         command.camera.saveCapture("_")
         try:
             os.makedirs(path.dirname(test_case[1]))
-        except:
+        except OSError:
             pass
         shutil.move("./Captures/_.png", test_case[1])
 
